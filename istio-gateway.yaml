@@ -4,7 +4,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: Gateway
 metadata:
   name: 3tier-gateway
-  namespace: 3tier-app-07
+  namespace: 3tier-app-08
 spec:
   selector:
     istio: ingressgateway
