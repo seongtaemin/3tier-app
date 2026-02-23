@@ -66,6 +66,7 @@ metadata:
     app: web
     tier: frontend
 spec:
+  type: LoadBalancer
   selector:
     app: web
     tier: frontend
