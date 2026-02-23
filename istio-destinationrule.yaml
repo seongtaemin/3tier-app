@@ -4,7 +4,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: web-destinationrule
-  namespace: 3tier-app-06
+  namespace: 3tier-app-07
 spec:
   host: web
   trafficPolicy:
@@ -46,7 +46,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: was-destinationrule
-  namespace: 3tier-app-06
+  namespace: 3tier-app-07
 spec:
   host: was
   trafficPolicy:
@@ -90,7 +90,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: db-destinationrule
-  namespace: 3tier-app-06
+  namespace: 3tier-app-07
 spec:
   host: db
   trafficPolicy:
