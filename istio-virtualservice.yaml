@@ -42,11 +42,6 @@ spec:
       attempts: 3
       perTryTimeout: 15s
       retryOn: 5xx,reset,connect-failure,retriable-4xx
-    fault:
-      delay:
-        percentage:
-          value: 0
-        fixedDelay: 0s
     headers:
       request:
         add:
