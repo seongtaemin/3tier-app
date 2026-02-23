@@ -37,27 +37,25 @@ data:
 
   index.jsp: |
     <%@ page contentType="text/html; charset=UTF-8" %>
-    <%@ page import="java.sql.*" %>
+    <%@ page import="java.net.Socket" %>
+    <%@ page import="java.net.InetSocketAddress" %>
     <%@ page import="java.net.InetAddress" %>
     <%
         String dbHost = System.getenv("DB_HOST");
-        String dbPort = System.getenv("DB_PORT");
-        String dbUser = System.getenv("DB_USER");
-        String dbPass = System.getenv("DB_PASSWORD");
+        String dbPortStr = System.getenv("DB_PORT");
+        int dbPort = (dbPortStr != null && !dbPortStr.isEmpty()) ? Integer.parseInt(dbPortStr) : 3306;
         
         String dbStatus = "Disconnected";
-        String url = "jdbc:mysql://" + dbHost + ":" + dbPort + "/mysql?useSSL=false&allowPublicKeyRetrieval=true";
-        Connection conn = null;
+        Socket socket = new Socket();
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            conn = DriverManager.getConnection(url, dbUser, dbPass);
-            if (conn != null) {
-                dbStatus = "Connected to MySQL at " + dbHost;
+            socket.connect(new InetSocketAddress(dbHost, dbPort), 3000);
+            if (socket.isConnected()) {
+                dbStatus = "Connected to DB at " + dbHost + ":" + dbPort;
             }
         } catch (Exception e) {
             dbStatus = "Error: " + e.getMessage();
         } finally {
-            if (conn != null) try { conn.close(); } catch(Exception e) {}
+            try { socket.close(); } catch(Exception e) {}
         }
     %>
     <!DOCTYPE html>
