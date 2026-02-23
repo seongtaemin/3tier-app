@@ -33,4 +33,4 @@ data:
   JAVA_OPTS: "-Xms512m -Xmx1024m -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
 
   # Tomcat 설정
-  CATALINA_OPTS: "-Dspring.profiles.active=production"
+  CATALINA_OPTS: "-Dspring.profiles.active=production -Dspring.config.location=file:/opt/app/config/application.properties"
