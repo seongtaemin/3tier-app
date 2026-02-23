@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
       - name: tomcat
-        image: tomcat:10.1-jdk17
+        image: harbor.kolon.local/library/tomcat:10.1-jdk17
         ports:
         - containerPort: 8080
           name: http
