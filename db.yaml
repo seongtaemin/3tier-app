@@ -103,5 +103,4 @@ spec:
   ports:
   - port: 3306
     targetPort: 3306
-    name: mysql
-  clusterIP: None
+    name: tcp-mysql
