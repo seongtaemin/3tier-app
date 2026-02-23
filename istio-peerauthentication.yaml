@@ -1,5 +1,5 @@
 ---
-# 네임스페이스 내 모든 서비스 간 mTLS 강제 적용
+# 네임스페이스 기본 mTLS 설정 (STRICT)
 apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
@@ -8,6 +8,19 @@ metadata:
 spec:
   mtls:
     mode: STRICT
+---
+# Web 티어는 외부 트래픽(일반 HTTP)도 수신해야 하므로 PERMISSIVE
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: web-peerauthentication
+  namespace: 3tier-app
+spec:
+  selector:
+    matchLabels:
+      app: web
+  mtls:
+    mode: PERMISSIVE
 ---
 # Web → WAS 접근만 허용하는 AuthorizationPolicy
 apiVersion: security.istio.io/v1beta1
