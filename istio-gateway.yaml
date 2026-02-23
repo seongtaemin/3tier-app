@@ -1,20 +1,17 @@
 ---
-# Kubernetes Gateway API 스타일 Gateway (Bookinfo 샘플과 동일한 방식)
-# 참고: https://raw.githubusercontent.com/istio/istio/release-1.28/samples/bookinfo/gateway-api/bookinfo-gateway.yaml
-apiVersion: gateway.networking.k8s.io/v1
+# Istio 네이티브 Gateway (기존 istio-ingressgateway 사용)
+apiVersion: networking.istio.io/v1beta1
 kind: Gateway
 metadata:
   name: 3tier-gateway
   namespace: 3tier-app
-  annotations:
-    # LoadBalancer 타입으로 외부 노출
-    networking.istio.io/service-type: LoadBalancer
 spec:
-  gatewayClassName: istio
-  listeners:
-  - name: http
-    port: 80
-    protocol: HTTP
-    allowedRoutes:
-      namespaces:
-        from: Same
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
