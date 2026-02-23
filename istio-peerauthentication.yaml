@@ -1,0 +1,10 @@
+---
+# 네임스페이스 내 모든 서비스 간 mTLS 강제 적용
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: 3tier-app
+spec:
+  mtls:
+    mode: STRICT

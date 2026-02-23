@@ -1,0 +1,65 @@
+---
+# 외부 트래픽 → Web 라우팅
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: web-virtualservice
+  namespace: 3tier-app
+spec:
+  hosts:
+  - "3tier-app.local"
+  gateways:
+  - 3tier-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        host: web
+        port:
+          number: 80
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+      retryOn: 5xx,reset,connect-failure
+---
+# Web → WAS 내부 라우팅
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: was-virtualservice
+  namespace: 3tier-app
+spec:
+  hosts:
+  - was
+  http:
+  - route:
+    - destination:
+        host: was
+        port:
+          number: 8080
+    timeout: 60s
+    retries:
+      attempts: 2
+      perTryTimeout: 20s
+      retryOn: 5xx,reset,connect-failure
+---
+# WAS → DB 내부 라우팅
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: db-virtualservice
+  namespace: 3tier-app
+spec:
+  hosts:
+  - db
+  tcp:
+  - match:
+    - port: 3306
+    route:
+    - destination:
+        host: db
+        port:
+          number: 3306
