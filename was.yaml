@@ -24,10 +24,6 @@ spec:
       containers:
       - name: tomcat
         image: harbor.kolon.local/library/tomcat:10.1-jdk17
-        lifecycle:
-          postStart:
-            exec:
-              command: ["/bin/sh", "-c", "cp -a /usr/local/tomcat/webapps.dist/* /usr/local/tomcat/webapps/"]
         ports:
         - containerPort: 8080
           name: http
@@ -71,6 +67,9 @@ spec:
         volumeMounts:
         - name: was-config-volume
           mountPath: /opt/app/config
+        - name: was-config-volume
+          mountPath: /usr/local/tomcat/webapps/ROOT/index.jsp
+          subPath: index.jsp
         livenessProbe:
           tcpSocket:
             port: 8080
@@ -92,6 +91,8 @@ spec:
           items:
           - key: application.properties
             path: application.properties
+          - key: index.jsp
+            path: index.jsp
 ---
 apiVersion: v1
 kind: Service
