@@ -3,7 +3,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: db-pvc
-  namespace: ${TARGET_NAMESPACE}
+  namespace: 3tier-app-05
   labels:
     app: db
     tier: backend
