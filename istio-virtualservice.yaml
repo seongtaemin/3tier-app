@@ -1,31 +1,26 @@
 ---
-# 외부 트래픽 → Web 라우팅
-apiVersion: networking.istio.io/v1beta1
-kind: VirtualService
+# 외부 트래픽 → Web 라우팅 (Gateway API HTTPRoute)
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
 metadata:
-  name: web-virtualservice
+  name: web-route
   namespace: 3tier-app
 spec:
-  hosts:
-  - "3tier-app.local"
-  gateways:
-  - 3tier-gateway
-  http:
-  - match:
-    - uri:
-        prefix: /
-    route:
-    - destination:
-        host: web
-        port:
-          number: 80
-    timeout: 30s
-    retries:
-      attempts: 3
-      perTryTimeout: 10s
-      retryOn: 5xx,reset,connect-failure
+  parentRefs:
+  - name: 3tier-gateway
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: web
+      port: 80
+    timeouts:
+      request: 30s
+      backendRequest: 10s
 ---
-# Web → WAS 내부 라우팅
+# Web → WAS 내부 라우팅 (서비스 메시 내부 트래픽 제어)
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -38,15 +33,29 @@ spec:
   - route:
     - destination:
         host: was
+        subset: v1
         port:
           number: 8080
+      weight: 100
     timeout: 60s
     retries:
-      attempts: 2
-      perTryTimeout: 20s
-      retryOn: 5xx,reset,connect-failure
+      attempts: 3
+      perTryTimeout: 15s
+      retryOn: 5xx,reset,connect-failure,retriable-4xx
+    fault:
+      delay:
+        percentage:
+          value: 0
+        fixedDelay: 0s
+    headers:
+      request:
+        add:
+          x-forwarded-by: "web-tier"
+      response:
+        add:
+          x-served-by: "was-tier"
 ---
-# WAS → DB 내부 라우팅
+# WAS → DB 내부 라우팅 (TCP 트래픽 제어)
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -61,5 +70,7 @@ spec:
     route:
     - destination:
         host: db
+        subset: v1
         port:
           number: 3306
+      weight: 100

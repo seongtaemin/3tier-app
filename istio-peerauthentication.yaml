@@ -8,3 +8,88 @@ metadata:
 spec:
   mtls:
     mode: STRICT
+---
+# Web → WAS 접근만 허용하는 AuthorizationPolicy
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: was-access-policy
+  namespace: 3tier-app
+spec:
+  selector:
+    matchLabels:
+      app: was
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/3tier-app/sa/default"]
+    to:
+    - operation:
+        ports: ["8080"]
+---
+# WAS → DB 접근만 허용하는 AuthorizationPolicy
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: db-access-policy
+  namespace: 3tier-app
+spec:
+  selector:
+    matchLabels:
+      app: db
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/3tier-app/sa/default"]
+    to:
+    - operation:
+        ports: ["3306"]
+---
+# Web에 대한 요청 속도 제한 (Envoy 필터)
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: web-ratelimit
+  namespace: 3tier-app
+spec:
+  workloadSelector:
+    labels:
+      app: web
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      context: SIDECAR_INBOUND
+      listener:
+        filterChain:
+          filter:
+            name: envoy.filters.network.http_connection_manager
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        name: envoy.filters.http.local_ratelimit
+        typed_config:
+          "@type": type.googleapis.com/udpa.type.v1.TypedStruct
+          type_url: type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
+          value:
+            stat_prefix: http_local_rate_limiter
+            token_bucket:
+              max_tokens: 100
+              tokens_per_fill: 100
+              fill_interval: 60s
+            filter_enabled:
+              runtime_key: local_rate_limit_enabled
+              default_value:
+                numerator: 100
+                denominator: HUNDRED
+            filter_enforced:
+              runtime_key: local_rate_limit_enforced
+              default_value:
+                numerator: 100
+                denominator: HUNDRED
+            response_headers_to_add:
+            - append_action: OVERWRITE_IF_EXISTS_OR_ADD
+              header:
+                key: x-local-rate-limit
+                value: "true"
