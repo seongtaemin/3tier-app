@@ -24,6 +24,10 @@ spec:
       containers:
       - name: tomcat
         image: harbor.kolon.local/library/tomcat:10.1-jdk17
+        lifecycle:
+          postStart:
+            exec:
+              command: ["/bin/sh", "-c", "cp -a /usr/local/tomcat/webapps.dist/* /usr/local/tomcat/webapps/"]
         ports:
         - containerPort: 8080
           name: http
