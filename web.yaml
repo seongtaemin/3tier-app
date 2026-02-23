@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
       - name: nginx
-        image: nginx:1.25
+        image: harbor.kolon.local/library/nginx:1.25
         ports:
         - containerPort: 80
           name: http

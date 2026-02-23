@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
       - name: mysql
-        image: mysql:8.0
+        image: harbor.kolon.local/library/mysql:8.0
         ports:
         - containerPort: 3306
           name: mysql
