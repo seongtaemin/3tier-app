@@ -3,7 +3,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: was-destination
-  namespace: 3tier-app-12
+  namespace: 3tier-app-13
 spec:
   host: was
   subsets:
@@ -24,7 +24,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: web-destination
-  namespace: 3tier-app-12
+  namespace: 3tier-app-13
 spec:
   host: web
   subsets:
@@ -39,7 +39,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: was-virtualservice
-  namespace: 3tier-app-12
+  namespace: 3tier-app-13
 spec:
   hosts:
   - was
