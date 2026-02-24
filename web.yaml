@@ -98,8 +98,7 @@ metadata:
     app: web
     tier: frontend
 spec:
-  type: LoadBalancer
-  externalTrafficPolicy: Local
+  type: ClusterIP
   selector:
     app: web
     tier: frontend
