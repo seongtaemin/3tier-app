@@ -4,7 +4,7 @@ apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
   name: default
-  namespace: ${NAMESPACE}
+  namespace: 3tier-app-21
 spec:
   mtls:
     mode: STRICT
@@ -14,7 +14,7 @@ apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
   name: web-peerauthentication
-  namespace: ${NAMESPACE}
+  namespace: 3tier-app-21
 spec:
   selector:
     matchLabels:
@@ -27,7 +27,7 @@ apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: web-access-policy
-  namespace: ${NAMESPACE}
+  namespace: 3tier-app-21
 spec:
   selector:
     matchLabels:
@@ -44,7 +44,7 @@ apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: was-access-policy
-  namespace: ${NAMESPACE}
+  namespace: 3tier-app-21
 spec:
   selector:
     matchLabels:
@@ -53,7 +53,7 @@ spec:
   rules:
   - from:
     - source:
-        principals: ["cluster.local/ns/${NAMESPACE}/sa/default"]
+        principals: ["cluster.local/ns/3tier-app-21/sa/default"]
     to:
     - operation:
         ports: ["8080"]
@@ -63,7 +63,7 @@ apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: db-access-policy
-  namespace: ${NAMESPACE}
+  namespace: 3tier-app-21
 spec:
   selector:
     matchLabels:
@@ -72,7 +72,7 @@ spec:
   rules:
   - from:
     - source:
-        principals: ["cluster.local/ns/${NAMESPACE}/sa/default"]
+        principals: ["cluster.local/ns/3tier-app-21/sa/default"]
     to:
     - operation:
         ports: ["3306"]
