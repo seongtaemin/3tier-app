@@ -76,5 +76,3 @@ spec:
     to:
     - operation:
         ports: ["3306"]
----
-

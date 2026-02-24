@@ -46,22 +46,6 @@ spec:
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
-  name: all-destinationrules
-  namespace: ${NAMESPACE}
-spec:
-  host: web
-  trafficPolicy:
-    loadBalancer:
-      simple: ROUND_ROBIN
-  subsets:
-  - name: v1
-    labels: { version: v1 }
-  - name: v2
-    labels: { version: v2 }
----
-apiVersion: networking.istio.io/v1beta1
-kind: DestinationRule
-metadata:
   name: was-destination
   namespace: ${NAMESPACE}
 spec:
@@ -69,6 +53,8 @@ spec:
   trafficPolicy:
     loadBalancer:
       simple: ROUND_ROBIN
+    tls:
+      mode: ISTIO_MUTUAL
   subsets:
   - name: v1
     labels: { version: v1 }
@@ -79,11 +65,45 @@ spec:
   - name: v4
     labels: { version: v4 }
 ---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: web-destination
+  namespace: ${NAMESPACE}
+spec:
+  host: web
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    tls:
+      mode: ISTIO_MUTUAL
+  subsets:
+  - name: v1
+    labels: { version: v1 }
+  - name: v2
+    labels: { version: v2 }
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: db-destination
+  namespace: ${NAMESPACE}
+spec:
+  host: db
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    tls:
+      mode: ISTIO_MUTUAL
+  subsets:
+  - name: v1
+    labels: { version: v1 }
+---
 # 5. 가상 서비스(VirtualService): 외부 및 내부 라우팅 통합
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: 3tier-routing
+  name: web-external-routing
   namespace: ${NAMESPACE}
 spec:
   hosts:
@@ -104,3 +124,74 @@ spec:
       response:
         set:
           Cache-Control: "no-store, no-cache, must-revalidate"
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: was-virtualservice
+  namespace: ${NAMESPACE}
+spec:
+  hosts:
+  - was
+  http:
+  - match:
+    - sourceLabels:
+        app: web
+        version: v1
+    route:
+    - destination:
+        host: was
+        subset: v1
+      weight: 50
+    - destination:
+        host: was
+        subset: v2
+      weight: 50
+  - match:
+    - sourceLabels:
+        app: web
+        version: v2
+    route:
+    - destination:
+        host: was
+        subset: v3
+      weight: 50
+    - destination:
+        host: was
+        subset: v4
+      weight: 50
+  - route: # Default fallback
+    - destination:
+        host: was
+        subset: v1
+      weight: 25
+    - destination:
+        host: was
+        subset: v2
+      weight: 25
+    - destination:
+        host: was
+        subset: v3
+      weight: 25
+    - destination:
+        host: was
+        subset: v4
+      weight: 25
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: db-virtualservice
+  namespace: ${NAMESPACE}
+spec:
+  hosts:
+  - db
+  tcp:
+  - match:
+    - port: 3306
+    route:
+    - destination:
+        host: db
+        subset: v1
+        port:
+          number: 3306
