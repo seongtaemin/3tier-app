@@ -4,7 +4,7 @@ apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
   name: default
-  namespace: ${NAMESPACE}
+  namespace: 3tier-app-23
 spec:
   mtls:
     mode: PERMISSIVE
@@ -14,7 +14,7 @@ apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: web-access-policy
-  namespace: ${NAMESPACE}
+  namespace: 3tier-app-23
 spec:
   selector:
     matchLabels:
@@ -30,7 +30,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: Gateway
 metadata:
   name: 3tier-gateway
-  namespace: ${NAMESPACE}
+  namespace: 3tier-app-23
 spec:
   selector:
     istio: ingressgateway
@@ -46,7 +46,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: web-destination
-  namespace: ${NAMESPACE}
+  namespace: 3tier-app-23
 spec:
   host: web
   trafficPolicy:
@@ -62,7 +62,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: was-destination
-  namespace: ${NAMESPACE}
+  namespace: 3tier-app-23
 spec:
   host: was
   trafficPolicy:
@@ -82,7 +82,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: web-external-routing
-  namespace: ${NAMESPACE}
+  namespace: 3tier-app-23
 spec:
   hosts:
   - "*"
@@ -103,7 +103,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: was-virtualservice
-  namespace: ${NAMESPACE}
+  namespace: 3tier-app-23
 spec:
   hosts:
   - was

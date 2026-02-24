@@ -3,7 +3,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: db-config
-  namespace: ${NAMESPACE}
+  namespace: 3tier-app-23
   labels:
     app: db
     tier: backend
