@@ -3,12 +3,12 @@ apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: was-destination
-  namespace: 3tier-app-16
+  namespace: ${NAMESPACE}
 spec:
   host: was
   trafficPolicy:
     loadBalancer:
-      simple: RANDOM # 세션 고정 방지를 위해 랜덤 로드밸런싱 적용
+      simple: LEAST_REQUEST
   subsets:
   - name: v1
     labels:
@@ -27,12 +27,12 @@ apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: web-destination
-  namespace: 3tier-app-16
+  namespace: ${NAMESPACE}
 spec:
   host: web
   trafficPolicy:
     loadBalancer:
-      simple: RANDOM # 웹 서버도 랜덤하게 선택되도록 설정
+      simple: LEAST_REQUEST
   subsets:
   - name: v1
     labels:
@@ -45,7 +45,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: web-external-routing
-  namespace: 3tier-app-16
+  namespace: ${NAMESPACE}
 spec:
   hosts:
   - "*"
@@ -61,12 +61,16 @@ spec:
         host: web
         subset: v2
       weight: 50
+    headers:
+      response:
+        set:
+          Cache-Control: "no-store, no-cache, must-revalidate"
 ---
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: was-virtualservice
-  namespace: 3tier-app-16
+  namespace: ${NAMESPACE}
 spec:
   hosts:
   - was
