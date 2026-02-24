@@ -4,7 +4,7 @@ apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
   name: default
-  namespace: 3tier-app-13
+  namespace: 3tier-app-14
 spec:
   mtls:
     mode: STRICT
@@ -14,7 +14,7 @@ apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
   name: web-peerauthentication
-  namespace: 3tier-app-13
+  namespace: 3tier-app-14
 spec:
   selector:
     matchLabels:
@@ -27,7 +27,7 @@ apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: was-access-policy
-  namespace: 3tier-app-13
+  namespace: 3tier-app-14
 spec:
   selector:
     matchLabels:
@@ -36,7 +36,7 @@ spec:
   rules:
   - from:
     - source:
-        principals: ["cluster.local/ns/3tier-app-13/sa/default"]
+        principals: ["cluster.local/ns/3tier-app-14/sa/default"]
     to:
     - operation:
         ports: ["8080"]
@@ -46,7 +46,7 @@ apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: db-access-policy
-  namespace: 3tier-app-13
+  namespace: 3tier-app-14
 spec:
   selector:
     matchLabels:
@@ -55,7 +55,7 @@ spec:
   rules:
   - from:
     - source:
-        principals: ["cluster.local/ns/3tier-app-13/sa/default"]
+        principals: ["cluster.local/ns/3tier-app-14/sa/default"]
     to:
     - operation:
         ports: ["3306"]
@@ -65,7 +65,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   name: web-ratelimit
-  namespace: 3tier-app-13
+  namespace: 3tier-app-14
 spec:
   workloadSelector:
     labels:
