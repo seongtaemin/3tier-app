@@ -1,17 +1,20 @@
 ---
-# Istio 네이티브 Gateway (기존 istio-ingressgateway 사용)
-apiVersion: networking.istio.io/v1beta1
+# Kubernetes Gateway API를 사용한 전용 게이트웨이 설정
+# 이 설정을 적용하면 해당 네임스페이스에 전용 LoadBalancer와 게이트웨이 파드가 생성됩니다.
+apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: 3tier-gateway
-  namespace: 3tier-app-23
+  namespace: ${NAMESPACE}
+  annotations:
+    networking.istio.io/service-type: LoadBalancer
+    networking.istio.io/service-external-traffic-policy: Local
 spec:
-  selector:
-    istio: ingressgateway
-  servers:
-  - port:
-      number: 80
-      name: http
-      protocol: HTTP
-    hosts:
-    - "*"
+  gatewayClassName: istio
+  listeners:
+  - name: http
+    port: 80
+    protocol: HTTP
+    allowedRoutes:
+      namespaces:
+        from: Same

@@ -1,20 +1,21 @@
 ---
-# 1. 보안 설정: 접속 허용을 위해 PERMISSIVE로 원복
+# 1. 인증 및 보안 설정 (PeerAuthentication)
 apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
   name: default
-  namespace: 3tier-app-23
+  namespace: ${NAMESPACE}
 spec:
   mtls:
-    mode: PERMISSIVE
+    mode: STRICT
 ---
-# 2. 인가 정책: 게이트웨이 접속 허용
+# 2. 인가 정책 (AuthorizationPolicy)
+# Gateway -> Web (해당 네임스페이스 내의 게이트웨이 파드에서 오는 트래픽 허용)
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: web-access-policy
-  namespace: 3tier-app-23
+  namespace: ${NAMESPACE}
 spec:
   selector:
     matchLabels:
@@ -23,35 +24,51 @@ spec:
   rules:
   - from:
     - source:
-        namespaces: ["istio-system"]
+        namespaces: ["${NAMESPACE}", "istio-system"]
 ---
-# 3. 게이트웨이 및 라우팅 통합
-apiVersion: networking.istio.io/v1beta1
-kind: Gateway
+# Web -> WAS
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
 metadata:
-  name: 3tier-gateway
-  namespace: 3tier-app-23
+  name: was-access-policy
+  namespace: ${NAMESPACE}
 spec:
   selector:
-    istio: ingressgateway
-  servers:
-  - port:
-      number: 80
-      name: http
-      protocol: HTTP
-    hosts:
-    - "*"
+    matchLabels:
+      app: was
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/${NAMESPACE}/sa/default"]
 ---
+# WAS -> DB
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: db-access-policy
+  namespace: ${NAMESPACE}
+spec:
+  selector:
+    matchLabels:
+      app: db
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/${NAMESPACE}/sa/default"]
+---
+# 3. 대상 규칙 (DestinationRule)
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: web-destination
-  namespace: 3tier-app-23
+  namespace: ${NAMESPACE}
 spec:
   host: web
   trafficPolicy:
-    loadBalancer:
-      simple: ROUND_ROBIN
+    tls:
+      mode: ISTIO_MUTUAL
   subsets:
   - name: v1
     labels: { version: v1 }
@@ -62,12 +79,12 @@ apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: was-destination
-  namespace: 3tier-app-23
+  namespace: ${NAMESPACE}
 spec:
   host: was
   trafficPolicy:
-    loadBalancer:
-      simple: ROUND_ROBIN
+    tls:
+      mode: ISTIO_MUTUAL
   subsets:
   - name: v1
     labels: { version: v1 }
@@ -79,15 +96,45 @@ spec:
     labels: { version: v4 }
 ---
 apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: db-destination
+  namespace: ${NAMESPACE}
+spec:
+  host: db
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+---
+# 4. 라우팅 설정 (HTTPRoute - 외부 트래픽용)
+# 전용 Gateway API 리소스를 사용하여 외부 인그레스 제어
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: web-route
+  namespace: ${NAMESPACE}
+spec:
+  parentRefs:
+  - name: 3tier-gateway
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - name: web
+      port: 80
+---
+# 5. 가상 서비스 (VirtualService - 내부 메시 트래픽용)
+# Web 내부의 v1/v2 가중치 분산
+apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: web-external-routing
-  namespace: 3tier-app-23
+  name: web-internal
+  namespace: ${NAMESPACE}
 spec:
   hosts:
-  - "*"
-  gateways:
-  - 3tier-gateway
+  - web
   http:
   - route:
     - destination:
@@ -95,15 +142,18 @@ spec:
         subset: v1
       weight: 50
     - destination:
+        host: web-v2 # v2가 만약 별도 서비스라면? 아니면 subset? 
+        # 기존에는 host: web, subset: v2 였으므로 다시 확인
         host: web
         subset: v2
       weight: 50
 ---
+# WAS 내부 v1~v4 가중치 분산
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
-  name: was-virtualservice
-  namespace: 3tier-app-23
+  name: was-internal
+  namespace: ${NAMESPACE}
 spec:
   hosts:
   - was
@@ -125,3 +175,21 @@ spec:
         host: was
         subset: v4
       weight: 25
+---
+# DB 내부 TCP 라우팅
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: db-internal
+  namespace: ${NAMESPACE}
+spec:
+  hosts:
+  - db
+  tcp:
+  - match:
+    - port: 3306
+    route:
+    - destination:
+        host: db
+        port:
+          number: 3306
