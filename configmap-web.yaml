@@ -3,7 +3,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: web-config
-  namespace: 3tier-app-22
+  namespace: ${NAMESPACE}
   labels:
     app: web
     tier: frontend

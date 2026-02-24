@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: db
-  namespace: 3tier-app-22
+  namespace: ${NAMESPACE}
   labels:
     app: db
     tier: backend
@@ -92,7 +92,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: db
-  namespace: 3tier-app-22
+  namespace: ${NAMESPACE}
   labels:
     app: db
     tier: backend
