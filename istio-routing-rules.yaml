@@ -1,5 +1,5 @@
 ---
-# 1. 보안 설정: PERMISSIVE로 설정하여 접속 우선 허용
+# 1. 보안 설정: 접속 허용을 위해 PERMISSIVE로 원복
 apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
@@ -9,7 +9,7 @@ spec:
   mtls:
     mode: PERMISSIVE
 ---
-# 2. 인가 정책: 게이트웨이 및 내부 통신 허용
+# 2. 인가 정책: 게이트웨이 접속 허용
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
@@ -23,24 +23,9 @@ spec:
   rules:
   - from:
     - source:
-        namespaces: ["istio-system"] # 게이트웨이로부터의 접속 허용
+        namespaces: ["istio-system"]
 ---
-apiVersion: security.istio.io/v1beta1
-kind: AuthorizationPolicy
-metadata:
-  name: was-access-policy
-  namespace: ${NAMESPACE}
-spec:
-  selector:
-    matchLabels:
-      app: was
-  action: ALLOW
-  rules:
-  - from:
-    - source:
-        principals: ["cluster.local/ns/${NAMESPACE}/sa/default"]
----
-# 3. 게이트웨이 설정
+# 3. 게이트웨이 및 라우팅 통합
 apiVersion: networking.istio.io/v1beta1
 kind: Gateway
 metadata:
@@ -57,7 +42,6 @@ spec:
     hosts:
     - "*"
 ---
-# 4. 대상 규칙 (DestinationRule)
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
@@ -94,8 +78,6 @@ spec:
   - name: v4
     labels: { version: v4 }
 ---
-# 5. 가상 서비스 (VirtualService)
-# 외부 -> Web 라우팅
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -116,12 +98,7 @@ spec:
         host: web
         subset: v2
       weight: 50
-    headers:
-      response:
-        set:
-          Cache-Control: "no-store, no-cache, must-revalidate"
 ---
-# 내부 Web -> WAS 라우팅
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -131,33 +108,7 @@ spec:
   hosts:
   - was
   http:
-  - match:
-    - sourceLabels:
-        app: web
-        version: v1
-    route:
-    - destination:
-        host: was
-        subset: v1
-      weight: 50
-    - destination:
-        host: was
-        subset: v2
-      weight: 50
-  - match:
-    - sourceLabels:
-        app: web
-        version: v2
-    route:
-    - destination:
-        host: was
-        subset: v3
-      weight: 50
-    - destination:
-        host: was
-        subset: v4
-      weight: 50
-  - route: # Fallback
+  - route:
     - destination:
         host: was
         subset: v1
