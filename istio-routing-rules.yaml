@@ -6,6 +6,9 @@ metadata:
   namespace: 3tier-app-13
 spec:
   host: was
+  trafficPolicy:
+    loadBalancer:
+      simple: RANDOM # 세션 고정 방지를 위해 랜덤 로드밸런싱 적용
   subsets:
   - name: v1
     labels:
@@ -27,6 +30,9 @@ metadata:
   namespace: 3tier-app-13
 spec:
   host: web
+  trafficPolicy:
+    loadBalancer:
+      simple: RANDOM # 웹 서버도 랜덤하게 선택되도록 설정
   subsets:
   - name: v1
     labels:
@@ -34,6 +40,27 @@ spec:
   - name: v2
     labels:
       version: v2
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: web-external-routing
+  namespace: 3tier-app-13
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - 3tier-gateway
+  http:
+  - route:
+    - destination:
+        host: web
+        subset: v1
+      weight: 50
+    - destination:
+        host: web
+        subset: v2
+      weight: 50
 ---
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
