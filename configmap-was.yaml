@@ -3,7 +3,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: was-config
-  namespace: 3tier-app-16
+  namespace: 3tier-app-17
   labels:
     app: was
     tier: middleware
