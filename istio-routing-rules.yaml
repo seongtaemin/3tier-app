@@ -3,12 +3,12 @@ apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: was-destination
-  namespace: 3tier-app-18
+  namespace: ${NAMESPACE}
 spec:
   host: was
   trafficPolicy:
     loadBalancer:
-      simple: LEAST_REQUEST
+      simple: ROUND_ROBIN # 순차적으로 파드 선택 (Round Robin)
   subsets:
   - name: v1
     labels:
@@ -27,12 +27,12 @@ apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: web-destination
-  namespace: 3tier-app-18
+  namespace: ${NAMESPACE}
 spec:
   host: web
   trafficPolicy:
     loadBalancer:
-      simple: LEAST_REQUEST
+      simple: ROUND_ROBIN # 순차적으로 파드 선택 (Round Robin)
   subsets:
   - name: v1
     labels:
@@ -45,7 +45,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: web-external-routing
-  namespace: 3tier-app-18
+  namespace: ${NAMESPACE}
 spec:
   hosts:
   - "*"
@@ -70,7 +70,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: was-virtualservice
-  namespace: 3tier-app-18
+  namespace: ${NAMESPACE}
 spec:
   hosts:
   - was
