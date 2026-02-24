@@ -31,6 +31,23 @@ spec:
         env:
         - name: DB_HOST
           value: "db"
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: mysql-database
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: mysql-user
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: mysql-password
         volumeMounts:
         - name: was-config-volume
           mountPath: /usr/local/tomcat/webapps/ROOT/index.jsp
@@ -72,6 +89,23 @@ spec:
         env:
         - name: DB_HOST
           value: "db"
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: mysql-database
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: mysql-user
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: mysql-password
         volumeMounts:
         - name: was-config-volume
           mountPath: /usr/local/tomcat/webapps/ROOT/index.jsp
@@ -113,6 +147,23 @@ spec:
         env:
         - name: DB_HOST
           value: "db"
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: mysql-database
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: mysql-user
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: mysql-password
         volumeMounts:
         - name: was-config-volume
           mountPath: /usr/local/tomcat/webapps/ROOT/index.jsp
@@ -154,6 +205,23 @@ spec:
         env:
         - name: DB_HOST
           value: "db"
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: mysql-database
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: mysql-user
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: mysql-password
         volumeMounts:
         - name: was-config-volume
           mountPath: /usr/local/tomcat/webapps/ROOT/index.jsp
