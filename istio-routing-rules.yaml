@@ -3,7 +3,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: was-destination
-  namespace: 3tier-app-18
+  namespace: 3tier-app-19
 spec:
   host: was
   trafficPolicy:
@@ -27,7 +27,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: web-destination
-  namespace: 3tier-app-18
+  namespace: 3tier-app-19
 spec:
   host: web
   trafficPolicy:
@@ -45,7 +45,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: web-external-routing
-  namespace: 3tier-app-18
+  namespace: 3tier-app-19
 spec:
   hosts:
   - "*"
@@ -70,7 +70,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: was-virtualservice
-  namespace: 3tier-app-18
+  namespace: 3tier-app-19
 spec:
   hosts:
   - was

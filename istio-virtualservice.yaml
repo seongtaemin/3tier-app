@@ -4,7 +4,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: web-virtualservice
-  namespace: ${NAMESPACE}
+  namespace: 3tier-app-19
 spec:
   hosts:
   - "*"
@@ -32,7 +32,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: was-virtualservice
-  namespace: ${NAMESPACE}
+  namespace: 3tier-app-19
 spec:
   hosts:
   - was
@@ -62,7 +62,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: db-virtualservice
-  namespace: ${NAMESPACE}
+  namespace: 3tier-app-19
 spec:
   hosts:
   - db
