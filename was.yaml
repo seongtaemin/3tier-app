@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: was-v1
-  namespace: 3tier-app-12
+  namespace: 3tier-app-13
   labels:
     app: was
     tier: middleware
@@ -44,7 +44,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: was-v2
-  namespace: 3tier-app-12
+  namespace: 3tier-app-13
   labels:
     app: was
     tier: middleware
@@ -85,7 +85,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: was-v3
-  namespace: 3tier-app-12
+  namespace: 3tier-app-13
   labels:
     app: was
     tier: middleware
@@ -126,7 +126,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: was-v4
-  namespace: 3tier-app-12
+  namespace: 3tier-app-13
   labels:
     app: was
     tier: middleware
@@ -167,7 +167,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: was
-  namespace: 3tier-app-12
+  namespace: 3tier-app-13
   labels:
     app: was
     tier: middleware
@@ -184,7 +184,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: was-v1-hpa
-  namespace: 3tier-app-12
+  namespace: 3tier-app-13
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -204,7 +204,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: was-v2-hpa
-  namespace: 3tier-app-12
+  namespace: 3tier-app-13
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -224,7 +224,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: was-v3-hpa
-  namespace: 3tier-app-12
+  namespace: 3tier-app-13
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -244,7 +244,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: was-v4-hpa
-  namespace: 3tier-app-12
+  namespace: 3tier-app-13
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
