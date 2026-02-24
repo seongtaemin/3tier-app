@@ -1,0 +1,89 @@
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: was-destination
+  namespace: 3tier-app-12
+spec:
+  host: was
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+  - name: v2
+    labels:
+      version: v2
+  - name: v3
+    labels:
+      version: v3
+  - name: v4
+    labels:
+      version: v4
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: web-destination
+  namespace: 3tier-app-12
+spec:
+  host: web
+  subsets:
+  - name: v1
+    labels:
+      version: v1
+  - name: v2
+    labels:
+      version: v2
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: was-virtualservice
+  namespace: 3tier-app-12
+spec:
+  hosts:
+  - was
+  http:
+  - match:
+    - sourceLabels:
+        app: web
+        version: v1
+    route:
+    - destination:
+        host: was
+        subset: v1
+      weight: 50
+    - destination:
+        host: was
+        subset: v2
+      weight: 50
+  - match:
+    - sourceLabels:
+        app: web
+        version: v2
+    route:
+    - destination:
+        host: was
+        subset: v3
+      weight: 50
+    - destination:
+        host: was
+        subset: v4
+      weight: 50
+  - route: # Default fallback
+    - destination:
+        host: was
+        subset: v1
+      weight: 25
+    - destination:
+        host: was
+        subset: v2
+      weight: 25
+    - destination:
+        host: was
+        subset: v3
+      weight: 25
+    - destination:
+        host: was
+        subset: v4
+      weight: 25

@@ -2,18 +2,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: web
+  name: web-v1
   namespace: 3tier-app-12
   labels:
     app: web
     tier: frontend
     version: v1
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: web
       tier: frontend
+      version: v1
   template:
     metadata:
       labels:
@@ -38,20 +39,51 @@ spec:
         - name: web-config
           mountPath: /etc/nginx/nginx.conf
           subPath: nginx.conf
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: 80
-          initialDelaySeconds: 10
-          periodSeconds: 10
-          timeoutSeconds: 3
-        readinessProbe:
-          httpGet:
-            path: /healthz
-            port: 80
-          initialDelaySeconds: 5
-          periodSeconds: 5
-          timeoutSeconds: 3
+      volumes:
+      - name: web-config
+        configMap:
+          name: web-config
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-v2
+  namespace: 3tier-app-12
+  labels:
+    app: web
+    tier: frontend
+    version: v2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web
+      tier: frontend
+      version: v2
+  template:
+    metadata:
+      labels:
+        app: web
+        tier: frontend
+        version: v2
+    spec:
+      containers:
+      - name: nginx
+        image: harbor.kolon.local/library/nginx:1.25
+        ports:
+        - containerPort: 80
+          name: http
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
+        volumeMounts:
+        - name: web-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
       volumes:
       - name: web-config
         configMap:
@@ -79,15 +111,15 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: web-hpa
+  name: web-v1-hpa
   namespace: 3tier-app-12
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: web
-  minReplicas: 2
-  maxReplicas: 6
+    name: web-v1
+  minReplicas: 1
+  maxReplicas: 3
   metrics:
   - type: Resource
     resource:
@@ -95,9 +127,23 @@ spec:
       target:
         type: Utilization
         averageUtilization: 70
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: web-v2-hpa
+  namespace: 3tier-app-12
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: web-v2
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
   - type: Resource
     resource:
-      name: memory
+      name: cpu
       target:
         type: Utilization
         averageUtilization: 70
