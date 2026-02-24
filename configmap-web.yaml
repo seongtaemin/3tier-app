@@ -3,7 +3,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: web-config
-  namespace: 3tier-app-15
+  namespace: ${NAMESPACE}
   labels:
     app: web
     tier: frontend
@@ -28,7 +28,9 @@ data:
 
         access_log  /var/log/nginx/access.log  main;
         sendfile        on;
-        keepalive_timeout  65;
+        
+        # 연결 고착화 방지를 위해 keepalive 비활성화 및 타임아웃 단축
+        keepalive_timeout  0; 
 
         upstream was_backend {
             server was:8080;
@@ -38,32 +40,26 @@ data:
             listen 80;
             server_name _;
 
-            # 정적 파일 서빙
-            location /static/ {
-                alias /usr/share/nginx/html/static/;
-                expires 30d;
-                add_header Cache-Control "public, immutable";
-            }
-
-            # 헬스체크 엔드포인트
             location /healthz {
                 access_log off;
                 return 200 'OK';
                 add_header Content-Type text/plain;
             }
 
-            # WAS로 리버스 프록시
             location / {
                 proxy_pass http://was_backend;
                 proxy_http_version 1.1;
-                proxy_set_header Connection "";
+                
+                # Connection을 close로 설정하여 매 요청마다 새로 로드밸런싱 유도
+                proxy_set_header Connection "close"; 
+                
                 proxy_set_header Host was;
                 proxy_set_header X-Real-IP $remote_addr;
                 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
                 proxy_set_header X-Forwarded-Proto $scheme;
-                proxy_connect_timeout 30s;
-                proxy_read_timeout 60s;
-                proxy_send_timeout 60s;
+                proxy_connect_timeout 5s;
+                proxy_read_timeout 10s;
+                proxy_send_timeout 10s;
             }
         }
     }
