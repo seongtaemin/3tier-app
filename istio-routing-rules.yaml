@@ -8,7 +8,9 @@ spec:
   host: was
   trafficPolicy:
     loadBalancer:
-      simple: ROUND_ROBIN # 순차적으로 파드 선택 (Round Robin)
+      simple: ROUND_ROBIN
+    tls:
+      mode: ISTIO_MUTUAL
   subsets:
   - name: v1
     labels:
@@ -32,7 +34,9 @@ spec:
   host: web
   trafficPolicy:
     loadBalancer:
-      simple: ROUND_ROBIN # 순차적으로 파드 선택 (Round Robin)
+      simple: ROUND_ROBIN
+    tls:
+      mode: ISTIO_MUTUAL
   subsets:
   - name: v1
     labels:
@@ -40,6 +44,23 @@ spec:
   - name: v2
     labels:
       version: v2
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: db-destination
+  namespace: ${NAMESPACE}
+spec:
+  host: db
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    tls:
+      mode: ISTIO_MUTUAL
+  subsets:
+  - name: v1
+    labels:
+      version: v1
 ---
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
@@ -118,3 +139,21 @@ spec:
         host: was
         subset: v4
       weight: 25
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: db-virtualservice
+  namespace: ${NAMESPACE}
+spec:
+  hosts:
+  - db
+  tcp:
+  - match:
+    - port: 3306
+    route:
+    - destination:
+        host: db
+        subset: v1
+        port:
+          number: 3306

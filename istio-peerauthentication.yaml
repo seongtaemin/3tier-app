@@ -22,7 +22,24 @@ spec:
   mtls:
     mode: PERMISSIVE
 ---
-# Web → WAS 접근만 허용하는 AuthorizationPolicy
+# Web 티어 접근 허용 (Ingress Gateway → Web)
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: web-access-policy
+  namespace: ${NAMESPACE}
+spec:
+  selector:
+    matchLabels:
+      app: web
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        # 인그레스 게이트웨이의 ID를 허용 (일반적으로 istio-ingressgateway)
+        namespaces: ["istio-system"]
+---
+# WAS 티어 접근 허용 (Web → WAS)
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
@@ -36,7 +53,7 @@ spec:
   rules:
   - from:
     - source:
-        principals: ["cluster.local/ns/3tier-app-19/sa/default"]
+        principals: ["cluster.local/ns/${NAMESPACE}/sa/default"]
     to:
     - operation:
         ports: ["8080"]
@@ -55,54 +72,9 @@ spec:
   rules:
   - from:
     - source:
-        principals: ["cluster.local/ns/3tier-app-19/sa/default"]
+        principals: ["cluster.local/ns/${NAMESPACE}/sa/default"]
     to:
     - operation:
         ports: ["3306"]
 ---
-# Web에 대한 요청 속도 제한 (Envoy 필터)
-apiVersion: networking.istio.io/v1alpha3
-kind: EnvoyFilter
-metadata:
-  name: web-ratelimit
-  namespace: ${NAMESPACE}
-spec:
-  workloadSelector:
-    labels:
-      app: web
-  configPatches:
-  - applyTo: HTTP_FILTER
-    match:
-      context: SIDECAR_INBOUND
-      listener:
-        filterChain:
-          filter:
-            name: envoy.filters.network.http_connection_manager
-    patch:
-      operation: INSERT_BEFORE
-      value:
-        name: envoy.filters.http.local_ratelimit
-        typed_config:
-          "@type": type.googleapis.com/udpa.type.v1.TypedStruct
-          type_url: type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
-          value:
-            stat_prefix: http_local_rate_limiter
-            token_bucket:
-              max_tokens: 100
-              tokens_per_fill: 100
-              fill_interval: 60s
-            filter_enabled:
-              runtime_key: local_rate_limit_enabled
-              default_value:
-                numerator: 100
-                denominator: HUNDRED
-            filter_enforced:
-              runtime_key: local_rate_limit_enforced
-              default_value:
-                numerator: 100
-                denominator: HUNDRED
-            response_headers_to_add:
-            - append_action: OVERWRITE_IF_EXISTS_OR_ADD
-              header:
-                key: x-local-rate-limit
-                value: "true"
+
