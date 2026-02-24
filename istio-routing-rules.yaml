@@ -1,5 +1,5 @@
 ---
-# 1. 보안 설정: 우선 접속 허용을 위해 PERMISSIVE로 설정
+# 1. 보안 설정: PERMISSIVE로 설정하여 접속 우선 허용
 apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
@@ -9,7 +9,7 @@ spec:
   mtls:
     mode: PERMISSIVE
 ---
-# 2. 인가 정책: 게이트웨이의 웹 접속 허용
+# 2. 인가 정책: 게이트웨이 및 내부 통신 허용
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
@@ -23,9 +23,24 @@ spec:
   rules:
   - from:
     - source:
-        namespaces: ["istio-system"]
+        namespaces: ["istio-system"] # 게이트웨이로부터의 접속 허용
 ---
-# 3. 게이트웨이 설정 (포트 80 오픈)
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: was-access-policy
+  namespace: ${NAMESPACE}
+spec:
+  selector:
+    matchLabels:
+      app: was
+  action: ALLOW
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/${NAMESPACE}/sa/default"]
+---
+# 3. 게이트웨이 설정
 apiVersion: networking.istio.io/v1beta1
 kind: Gateway
 metadata:
@@ -42,29 +57,7 @@ spec:
     hosts:
     - "*"
 ---
-# 4. 대상 규칙(DestinationRule): 모든 티어 통합
-apiVersion: networking.istio.io/v1beta1
-kind: DestinationRule
-metadata:
-  name: was-destination
-  namespace: ${NAMESPACE}
-spec:
-  host: was
-  trafficPolicy:
-    loadBalancer:
-      simple: ROUND_ROBIN
-    tls:
-      mode: ISTIO_MUTUAL
-  subsets:
-  - name: v1
-    labels: { version: v1 }
-  - name: v2
-    labels: { version: v2 }
-  - name: v3
-    labels: { version: v3 }
-  - name: v4
-    labels: { version: v4 }
----
+# 4. 대상 규칙 (DestinationRule)
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
@@ -75,8 +68,6 @@ spec:
   trafficPolicy:
     loadBalancer:
       simple: ROUND_ROBIN
-    tls:
-      mode: ISTIO_MUTUAL
   subsets:
   - name: v1
     labels: { version: v1 }
@@ -86,20 +77,25 @@ spec:
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
-  name: db-destination
+  name: was-destination
   namespace: ${NAMESPACE}
 spec:
-  host: db
+  host: was
   trafficPolicy:
     loadBalancer:
       simple: ROUND_ROBIN
-    tls:
-      mode: ISTIO_MUTUAL
   subsets:
   - name: v1
     labels: { version: v1 }
+  - name: v2
+    labels: { version: v2 }
+  - name: v3
+    labels: { version: v3 }
+  - name: v4
+    labels: { version: v4 }
 ---
-# 5. 가상 서비스(VirtualService): 외부 및 내부 라우팅 통합
+# 5. 가상 서비스 (VirtualService)
+# 외부 -> Web 라우팅
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -125,6 +121,7 @@ spec:
         set:
           Cache-Control: "no-store, no-cache, must-revalidate"
 ---
+# 내부 Web -> WAS 라우팅
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -160,7 +157,7 @@ spec:
         host: was
         subset: v4
       weight: 50
-  - route: # Default fallback
+  - route: # Fallback
     - destination:
         host: was
         subset: v1
@@ -177,21 +174,3 @@ spec:
         host: was
         subset: v4
       weight: 25
----
-apiVersion: networking.istio.io/v1beta1
-kind: VirtualService
-metadata:
-  name: db-virtualservice
-  namespace: ${NAMESPACE}
-spec:
-  hosts:
-  - db
-  tcp:
-  - match:
-    - port: 3306
-    route:
-    - destination:
-        host: db
-        subset: v1
-        port:
-          number: 3306
