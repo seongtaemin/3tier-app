@@ -36,7 +36,7 @@ spec:
   rules:
   - from:
     - source:
-        principals: ["cluster.local/ns/3tier-app-17/sa/default"]
+        principals: ["cluster.local/ns/3tier-app-19/sa/default"]
     to:
     - operation:
         ports: ["8080"]
@@ -55,7 +55,7 @@ spec:
   rules:
   - from:
     - source:
-        principals: ["cluster.local/ns/3tier-app-17/sa/default"]
+        principals: ["cluster.local/ns/3tier-app-19/sa/default"]
     to:
     - operation:
         ports: ["3306"]
