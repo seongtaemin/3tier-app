@@ -1,14 +1,8 @@
----
-# Kubernetes Gateway API를 사용한 전용 게이트웨이 설정
-# 이 설정을 적용하면 해당 네임스페이스에 전용 LoadBalancer와 게이트웨이 파드가 생성됩니다.
-apiVersion: gateway.networking.k8s.io/v1
+apiVersion: gateway.networking.k8s.io/v1beta1
 kind: Gateway
 metadata:
   name: 3tier-gateway
   namespace: ${NAMESPACE}
-  annotations:
-    networking.istio.io/service-type: LoadBalancer
-    networking.istio.io/service-external-traffic-policy: Local
 spec:
   gatewayClassName: istio
   listeners:
