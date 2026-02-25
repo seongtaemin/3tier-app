@@ -4,7 +4,7 @@ apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
   name: default
-  namespace: 3tier-app-25
+  namespace: ${NAMESPACE}
 spec:
   mtls:
     mode: STRICT
@@ -15,7 +15,7 @@ apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: web-access-policy
-  namespace: 3tier-app-25
+  namespace: ${NAMESPACE}
 spec:
   selector:
     matchLabels:
@@ -24,14 +24,14 @@ spec:
   rules:
   - from:
     - source:
-        namespaces: ["3tier-app-24", "istio-system"]
+        namespaces: ["${NAMESPACE}", "istio-system"]
 ---
 # Web -> WAS
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: was-access-policy
-  namespace: 3tier-app-25
+  namespace: ${NAMESPACE}
 spec:
   selector:
     matchLabels:
@@ -40,14 +40,14 @@ spec:
   rules:
   - from:
     - source:
-        principals: ["cluster.local/ns/3tier-app-25/sa/default"]
+        principals: ["cluster.local/ns/${NAMESPACE}/sa/default"]
 ---
 # WAS -> DB
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: db-access-policy
-  namespace: 3tier-app-25
+  namespace: ${NAMESPACE}
 spec:
   selector:
     matchLabels:
@@ -56,14 +56,14 @@ spec:
   rules:
   - from:
     - source:
-        principals: ["cluster.local/ns/3tier-app-25/sa/default"]
+        principals: ["cluster.local/ns/${NAMESPACE}/sa/default"]
 ---
 # 3. 대상 규칙 (DestinationRule)
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: web-destination
-  namespace: 3tier-app-25
+  namespace: ${NAMESPACE}
 spec:
   host: web
   trafficPolicy:
@@ -79,7 +79,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: was-destination
-  namespace: 3tier-app-25
+  namespace: ${NAMESPACE}
 spec:
   host: was
   trafficPolicy:
@@ -99,7 +99,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: db-destination
-  namespace: 3tier-app-25
+  namespace: ${NAMESPACE}
 spec:
   host: db
   trafficPolicy:
@@ -112,7 +112,7 @@ apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
   name: web-route
-  namespace: 3tier-app-25
+  namespace: ${NAMESPACE}
 spec:
   parentRefs:
   - name: 3tier-gateway
@@ -131,7 +131,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: web-internal
-  namespace: 3tier-app-25
+  namespace: ${NAMESPACE}
 spec:
   hosts:
   - web
@@ -142,8 +142,6 @@ spec:
         subset: v1
       weight: 50
     - destination:
-        host: web-v2 # v2가 만약 별도 서비스라면? 아니면 subset? 
-        # 기존에는 host: web, subset: v2 였으므로 다시 확인
         host: web
         subset: v2
       weight: 50
@@ -153,7 +151,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: was-internal
-  namespace: 3tier-app-25
+  namespace: ${NAMESPACE}
 spec:
   hosts:
   - was
@@ -181,7 +179,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: db-internal
-  namespace: 3tier-app-25
+  namespace: ${NAMESPACE}
 spec:
   hosts:
   - db
