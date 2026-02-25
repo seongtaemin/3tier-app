@@ -1,14 +1,54 @@
-apiVersion: gateway.networking.k8s.io/v1
+# 1. 수동 게이트웨이 파드 (Deployment) - Istio Sidecar Injector가 게이트웨이로 변환
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: 3tier-gateway-istio
+  namespace: 3tier-app-30
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      istio: 3tier-gateway
+  template:
+    metadata:
+      annotations:
+        inject.istio.io/templates: gateway
+      labels:
+        istio: 3tier-gateway
+    spec:
+      containers:
+      - name: istio-proxy
+        image: auto
+---
+# 2. 로드밸런서 서비스 (Service)
+apiVersion: v1
+kind: Service
+metadata:
+  name: 3tier-gateway-istio
+  namespace: 3tier-app-30
+spec:
+  type: LoadBalancer
+  selector:
+    istio: 3tier-gateway
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    protocol: TCP
+---
+# 3. Istio Gateway 규칙 (클래식 API)
+apiVersion: networking.istio.io/v1beta1
 kind: Gateway
 metadata:
   name: 3tier-gateway
   namespace: 3tier-app-30
 spec:
-  gatewayClassName: istio
-  listeners:
-  - name: http
-    port: 80
-    protocol: HTTP
-    allowedRoutes:
-      namespaces:
-        from: Same
+  selector:
+    istio: 3tier-gateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
