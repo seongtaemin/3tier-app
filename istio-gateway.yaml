@@ -3,10 +3,6 @@ kind: Gateway
 metadata:
   name: 3tier-gateway
   namespace: 3tier-app-30
-  annotations:
-    # 로드밸런서 유형 및 트래픽 정책 명시
-    networking.istio.io/service-type: LoadBalancer
-    networking.istio.io/service-external-traffic-policy: Local
 spec:
   gatewayClassName: istio
   listeners:
@@ -16,19 +12,3 @@ spec:
     allowedRoutes:
       namespaces:
         from: Same
----
-# Istio가 자동 생성하길 기다리지 않고 서비스를 명시적으로 선언하여 프로비저닝 에러 해결
-apiVersion: v1
-kind: Service
-metadata:
-  name: 3tier-gateway-istio
-  namespace: 3tier-app-30
-spec:
-  type: LoadBalancer
-  selector:
-    istio.io/gateway-name: 3tier-gateway
-  ports:
-  - name: http
-    port: 80
-    targetPort: 80
-    protocol: TCP
