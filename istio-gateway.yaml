@@ -2,7 +2,7 @@ apiVersion: gateway.networking.k8s.io/v1beta1
 kind: Gateway
 metadata:
   name: 3tier-gateway
-  namespace: 3tier-app-24
+  namespace: 3tier-app-25
   annotations:
     networking.istio.io/service-type: LoadBalancer
     networking.istio.io/service-external-traffic-policy: Local
