@@ -1,20 +1,18 @@
----
-# ?�임?�페?�스 기본 mTLS ?�정 (STRICT)
+﻿---
+# 네임스페이스 기본 mTLS 설정 (STRICT)
 apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
   name: default
-
 spec:
   mtls:
     mode: STRICT
 ---
-# Web ?�어???��? ?�래???�반 HTTP)???�신?�야 ?��?�?PERMISSIVE
+# Web 티어만 외부 대응을 위해 PERMISSIVE 허용 (Gateway 통신용)
 apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
   name: web-peerauthentication
-
 spec:
   selector:
     matchLabels:
@@ -22,12 +20,11 @@ spec:
   mtls:
     mode: PERMISSIVE
 ---
-# Web ?�어 ?�근 ?�용 (Ingress Gateway ??Web)
+# Web 인가 정책 (Gateway -> Web)
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: web-access-policy
-
 spec:
   selector:
     matchLabels:
@@ -36,15 +33,13 @@ spec:
   rules:
   - from:
     - source:
-        # ?�그?�스 게이?�웨?�의 ID�??�용 (?�반?�으�?istio-ingressgateway)
-        namespaces: ["${NAMESPACE}", "istio-system"]
+        namespaces: ["\", "istio-system"]
 ---
-# WAS ?�어 ?�근 ?�용 (Web ??WAS)
+# WAS 인가 정책 (Web -> WAS)
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: was-access-policy
-
 spec:
   selector:
     matchLabels:
@@ -53,17 +48,13 @@ spec:
   rules:
   - from:
     - source:
-        principals: ["cluster.local/ns/${NAMESPACE}/sa/default"]
-    to:
-    - operation:
-        ports: ["8080"]
+        principals: ["cluster.local/ns/\/sa/default"]
 ---
-# WAS ??DB ?�근�??�용?�는 AuthorizationPolicy
+# DB 인가 정책 (WAS -> DB)
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: db-access-policy
-
 spec:
   selector:
     matchLabels:
@@ -72,7 +63,4 @@ spec:
   rules:
   - from:
     - source:
-        principals: ["cluster.local/ns/${NAMESPACE}/sa/default"]
-    to:
-    - operation:
-        ports: ["3306"]
+        principals: ["cluster.local/ns/\/sa/default"]
