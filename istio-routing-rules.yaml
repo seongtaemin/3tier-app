@@ -1,21 +1,21 @@
 ---
-# 1. 인증 및 보안 설정 (PeerAuthentication)
+# 1. ?�증 �?보안 ?�정 (PeerAuthentication)
 apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
   name: default
-  namespace: 3tier-app-31
+
 spec:
   mtls:
     mode: STRICT
 ---
-# 2. 인가 정책 (AuthorizationPolicy)
-# Gateway -> Web (해당 네임스페이스 내의 게이트웨이 파드에서 오는 트래픽 허용)
+# 2. ?��? ?�책 (AuthorizationPolicy)
+# Gateway -> Web (?�당 ?�임?�페?�스 ?�의 게이?�웨???�드?�서 ?�는 ?�래???�용)
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: web-access-policy
-  namespace: 3tier-app-31
+
 spec:
   selector:
     matchLabels:
@@ -31,7 +31,7 @@ apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: was-access-policy
-  namespace: 3tier-app-31
+
 spec:
   selector:
     matchLabels:
@@ -47,7 +47,7 @@ apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: db-access-policy
-  namespace: 3tier-app-31
+
 spec:
   selector:
     matchLabels:
@@ -58,12 +58,12 @@ spec:
     - source:
         principals: ["cluster.local/ns/3tier-app-31/sa/default"]
 ---
-# 3. 대상 규칙 (DestinationRule)
+# 3. ?�??규칙 (DestinationRule)
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: web-destination
-  namespace: 3tier-app-31
+
 spec:
   host: web
   trafficPolicy:
@@ -79,7 +79,7 @@ apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: was-destination
-  namespace: 3tier-app-31
+
 spec:
   host: was
   trafficPolicy:
@@ -99,20 +99,20 @@ apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: db-destination
-  namespace: 3tier-app-31
+
 spec:
   host: db
   trafficPolicy:
     tls:
       mode: ISTIO_MUTUAL
 ---
-# 4. 라우팅 설정 (VirtualService - 외부 트래픽용)
-# 전용 Istio 연동 라우팅 
+# 4. ?�우???�정 (VirtualService - ?��? ?�래?�용)
+# ?�용 Istio ?�동 ?�우??
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: web-external-route
-  namespace: 3tier-app-31
+
 spec:
   gateways:
   - 3tier-gateway
@@ -128,13 +128,13 @@ spec:
         port:
           number: 80
 ---
-# 5. 가상 서비스 (VirtualService - 내부 메시 트래픽용)
-# Web 내부의 v1/v2 가중치 분산
+# 5. 가???�비??(VirtualService - ?��? 메시 ?�래?�용)
+# Web ?��???v1/v2 가중치 분산
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: web-internal
-  namespace: 3tier-app-31
+
 spec:
   hosts:
   - web
@@ -149,12 +149,12 @@ spec:
         subset: v2
       weight: 50
 ---
-# WAS 내부 v1~v4 가중치 분산
+# WAS ?��? v1~v4 가중치 분산
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: was-internal
-  namespace: 3tier-app-31
+
 spec:
   hosts:
   - was
@@ -177,12 +177,12 @@ spec:
         subset: v4
       weight: 25
 ---
-# DB 내부 TCP 라우팅
+# DB ?��? TCP ?�우??
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: db-internal
-  namespace: 3tier-app-31
+
 spec:
   hosts:
   - db

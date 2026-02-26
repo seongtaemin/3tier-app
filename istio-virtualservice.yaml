@@ -1,10 +1,10 @@
 ---
-# 외부 트래픽 → Web 라우팅 (Istio VirtualService + Gateway)
+# ?��? ?�래????Web ?�우??(Istio VirtualService + Gateway)
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: web-virtualservice
-  namespace: 3tier-app-31
+
 spec:
   hosts:
   - "*"
@@ -27,12 +27,12 @@ spec:
       perTryTimeout: 10s
       retryOn: 5xx,reset,connect-failure
 ---
-# Web → WAS 내부 라우팅 (서비스 메시 내부 트래픽 제어)
+# Web ??WAS ?��? ?�우??(?�비??메시 ?��? ?�래???�어)
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: was-virtualservice
-  namespace: 3tier-app-31
+
 spec:
   hosts:
   - was
@@ -57,12 +57,12 @@ spec:
         add:
           x-served-by: "was-tier"
 ---
-# WAS → DB 내부 라우팅 (TCP 트래픽 제어)
+# WAS ??DB ?��? ?�우??(TCP ?�래???�어)
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: db-virtualservice
-  namespace: 3tier-app-31
+
 spec:
   hosts:
   - db

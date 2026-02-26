@@ -3,7 +3,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: web-config
-  namespace: 3tier-app-31
+
   labels:
     app: web
     tier: frontend
@@ -29,7 +29,7 @@ data:
         access_log  /var/log/nginx/access.log  main;
         sendfile        on;
         
-        # 연결 고착화 방지를 위해 keepalive 비활성화 및 타임아웃 단축
+        # ?�결 고착??방�?�??�해 keepalive 비활?�화 �??�?�아???�축
         keepalive_timeout  0; 
 
         upstream was_backend {
@@ -50,7 +50,7 @@ data:
                 proxy_pass http://was_backend;
                 proxy_http_version 1.1;
                 
-                # Connection을 close로 설정하여 매 요청마다 새로 로드밸런싱 유도
+                # Connection??close�??�정?�여 �??�청마다 ?�로 로드밸런???�도
                 proxy_set_header Connection "close"; 
                 
                 proxy_set_header Host was;

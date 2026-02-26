@@ -1,20 +1,20 @@
 ---
-# 네임스페이스 기본 mTLS 설정 (STRICT)
+# ?�임?�페?�스 기본 mTLS ?�정 (STRICT)
 apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
   name: default
-  namespace: 3tier-app-31
+
 spec:
   mtls:
     mode: STRICT
 ---
-# Web 티어는 외부 트래픽(일반 HTTP)도 수신해야 하므로 PERMISSIVE
+# Web ?�어???��? ?�래???�반 HTTP)???�신?�야 ?��?�?PERMISSIVE
 apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
   name: web-peerauthentication
-  namespace: 3tier-app-31
+
 spec:
   selector:
     matchLabels:
@@ -22,12 +22,12 @@ spec:
   mtls:
     mode: PERMISSIVE
 ---
-# Web 티어 접근 허용 (Ingress Gateway → Web)
+# Web ?�어 ?�근 ?�용 (Ingress Gateway ??Web)
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: web-access-policy
-  namespace: 3tier-app-31
+
 spec:
   selector:
     matchLabels:
@@ -36,15 +36,15 @@ spec:
   rules:
   - from:
     - source:
-        # 인그레스 게이트웨이의 ID를 허용 (일반적으로 istio-ingressgateway)
+        # ?�그?�스 게이?�웨?�의 ID�??�용 (?�반?�으�?istio-ingressgateway)
         namespaces: ["istio-system"]
 ---
-# WAS 티어 접근 허용 (Web → WAS)
+# WAS ?�어 ?�근 ?�용 (Web ??WAS)
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: was-access-policy
-  namespace: 3tier-app-31
+
 spec:
   selector:
     matchLabels:
@@ -58,12 +58,12 @@ spec:
     - operation:
         ports: ["8080"]
 ---
-# WAS → DB 접근만 허용하는 AuthorizationPolicy
+# WAS ??DB ?�근�??�용?�는 AuthorizationPolicy
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
   name: db-access-policy
-  namespace: 3tier-app-31
+
 spec:
   selector:
     matchLabels:
