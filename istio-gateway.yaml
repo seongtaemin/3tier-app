@@ -1,9 +1,8 @@
-# 1. ?�동 게이?�웨???�드 (Deployment) - Istio Sidecar Injector가 게이?�웨?�로 변??
+﻿# 1. Manual Gateway Pod (Deployment)
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: 3tier-gateway-istio
-
+  name: gateway-3tier-istio
 spec:
   replicas: 1
   selector:
@@ -20,12 +19,11 @@ spec:
       - name: istio-proxy
         image: auto
 ---
-# 2. 로드밸런???�비??(Service)
+# 2. LoadBalancer Service
 apiVersion: v1
 kind: Service
 metadata:
-  name: 3tier-gateway-istio
-
+  name: gateway-3tier-istio
 spec:
   type: LoadBalancer
   selector:
@@ -36,12 +34,11 @@ spec:
     targetPort: 80
     protocol: TCP
 ---
-# 3. Istio Gateway 규칙 (?�래??API)
+# 3. Istio Gateway Rules
 apiVersion: networking.istio.io/v1beta1
 kind: Gateway
 metadata:
   name: 3tier-gateway
-
 spec:
   selector:
     istio: 3tier-gateway
