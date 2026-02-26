@@ -1,15 +1,6 @@
 ---
-# 1. 인증 및 보안 설정 (PeerAuthentication)
-apiVersion: security.istio.io/v1beta1
-kind: PeerAuthentication
-metadata:
-  name: default
-spec:
-  mtls:
-    mode: STRICT
----
-# 2. 인가 정책 (AuthorizationPolicy)
-# Gateway -> Web (해당 네임스페이스 내의 게이트웨이 파드에서 오는 트래픽 허용)
+# 1. 인가 정책 (AuthorizationPolicy)
+# Gateway -> Web (게이트웨이 및 다른 네임스페이스 트래픽 허용)
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
@@ -23,6 +14,8 @@ spec:
   - from:
     - source:
         namespaces: ["${NAMESPACE}", "istio-system"]
+    - source:
+        principals: ["cluster.local/ns/${NAMESPACE}/sa/default"]
 ---
 # Web -> WAS
 apiVersion: security.istio.io/v1beta1
@@ -54,7 +47,7 @@ spec:
     - source:
         principals: ["cluster.local/ns/${NAMESPACE}/sa/default"]
 ---
-# 3. 대상 규칙 (DestinationRule)
+# 2. 대상 규칙 (DestinationRule)
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
@@ -99,8 +92,7 @@ spec:
     tls:
       mode: ISTIO_MUTUAL
 ---
-# 4. 라우팅 설정 (VirtualService - 외부 트래픽용)
-# 전용 Istio 연동 라우팅 
+# 3. 라우팅 설정 (VirtualService - 외부 트래픽용)
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -120,8 +112,7 @@ spec:
         port:
           number: 80
 ---
-# 5. 가상 서비스 (VirtualService - 내부 메시 트래픽용)
-# Web 내부의 v1/v2 가중치 분산
+# 4. 가상 서비스 (VirtualService - 내부 메시 트래픽용)
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
