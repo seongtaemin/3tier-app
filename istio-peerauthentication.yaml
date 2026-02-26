@@ -33,7 +33,7 @@ spec:
   rules:
   - from:
     - source:
-        namespaces: ["\", "istio-system"]
+        namespaces: ["${NAMESPACE}", "istio-system"]
 ---
 # WAS 인가 정책 (Web -> WAS)
 apiVersion: security.istio.io/v1beta1
@@ -48,7 +48,7 @@ spec:
   rules:
   - from:
     - source:
-        principals: ["cluster.local/ns/\/sa/default"]
+        principals: ["cluster.local/ns/${NAMESPACE}/sa/default"]
 ---
 # DB 인가 정책 (WAS -> DB)
 apiVersion: security.istio.io/v1beta1
@@ -63,4 +63,4 @@ spec:
   rules:
   - from:
     - source:
-        principals: ["cluster.local/ns/\/sa/default"]
+        principals: ["cluster.local/ns/${NAMESPACE}/sa/default"]
