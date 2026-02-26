@@ -8,7 +8,7 @@ metadata:
     app: was
     tier: middleware
 data:
-  # ?�플리�??�션 ?�정
+  # ?�플리�??�션 ?�정
   application.properties: |
     # Database Connection
     spring.datasource.url=jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
@@ -16,23 +16,23 @@ data:
     spring.datasource.username=${DB_USER}
     spring.datasource.password=${DB_PASSWORD}
 
-    # JPA ?�정
+    # JPA ?�정
     spring.jpa.hibernate.ddl-auto=update
     spring.jpa.show-sql=false
     spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
 
-    # ?�버 ?�정
+    # ?�버 ?�정
     server.port=8080
     server.servlet.context-path=/
 
-    # 로깅 ?�정
+    # 로깅 ?�정
     logging.level.root=INFO
     logging.level.org.springframework.web=INFO
 
-  # JVM ?�션
+  # JVM ?�션
   JAVA_OPTS: "-Xms512m -Xmx1024m -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
 
-  # Tomcat ?�정
+  # Tomcat ?�정
   CATALINA_OPTS: "-Dspring.profiles.active=production -Dspring.config.location=file:/opt/app/config/application.properties"
 
   index.jsp: |
@@ -74,7 +74,7 @@ data:
     </head>
     <body>
         <div class="container">
-            <h1>?? 3-Tier Application is Running!</h1>
+            <h1>3-Tier Application is Running!</h1>
             <div class="info">
                 <p><strong>WAS Pod Name:</strong> <span class="highlight"><%= InetAddress.getLocalHost().getHostName() %></span></p>
                 <p><strong>WAS Pod IP:</strong> <span class="highlight"><%= InetAddress.getLocalHost().getHostAddress() %></span></p>
