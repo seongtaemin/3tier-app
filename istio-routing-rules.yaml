@@ -1,5 +1,4 @@
----
-# 1. 인가 정책 (AuthorizationPolicy)
+# 1. 보안 정책 (AuthorizationPolicy)
 # Gateway -> Web (테스트를 위해 모든 트래픽 허용)
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
@@ -47,7 +46,7 @@ spec:
     - source:
         principals: ["cluster.local/ns/3tier-app-38/sa/default"]
 ---
-# 2. 대상 규칙 (DestinationRule)
+# 2. 연결 규칙 (DestinationRule)
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
@@ -158,7 +157,7 @@ spec:
         subset: v4
       weight: 25
 ---
-# DB 내부 TCP 라우팅
+# DB 서버 TCP 라우팅
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
