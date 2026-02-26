@@ -27,7 +27,7 @@ spec:
     - source:
         namespaces: ["${NAMESPACE}"]
     - source:
-        principals: ["cluster.local/ns/3tier-app-39/sa/default"]
+        principals: ["cluster.local/ns/3tier-app-40/sa/default"]
 ---
 # WAS -> DB
 apiVersion: security.istio.io/v1beta1
@@ -44,7 +44,7 @@ spec:
     - source:
         namespaces: ["${NAMESPACE}"]
     - source:
-        principals: ["cluster.local/ns/3tier-app-39/sa/default"]
+        principals: ["cluster.local/ns/3tier-app-40/sa/default"]
 ---
 # 2. 연결 규칙 (DestinationRule)
 apiVersion: networking.istio.io/v1beta1
