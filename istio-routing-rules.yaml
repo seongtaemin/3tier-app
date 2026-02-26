@@ -54,6 +54,28 @@ metadata:
 spec:
   host: web
   trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        connectTimeout: 10s
+        tcpKeepalive:
+          time: 7200s
+          interval: 75s
+          probes: 10
+      http:
+        h2UpgradePolicy: DEFAULT
+        http1MaxPendingRequests: 100
+        http2MaxRequests: 100
+        maxRequestsPerConnection: 10
+        maxRetries: 3
+    loadBalancer:
+      simple: ROUND_ROBIN
+    outlierDetection:
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 30
     tls:
       mode: ISTIO_MUTUAL
   subsets:
@@ -69,6 +91,30 @@ metadata:
 spec:
   host: was
   trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 200
+        connectTimeout: 15s
+        tcpKeepalive:
+          time: 7200s
+          interval: 75s
+          probes: 10
+      http:
+        http1MaxPendingRequests: 200
+        http2MaxRequests: 200
+        maxRequestsPerConnection: 20
+        maxRetries: 3
+        idleTimeout: 300s
+    loadBalancer:
+      simple: ROUND_ROBIN
+    outlierDetection:
+      consecutive5xxErrors: 3
+      interval: 15s
+      baseEjectionTime: 60s
+      maxEjectionPercent: 30
+      minHealthPercent: 30
+      splitExternalLocalOriginErrors: true
+      consecutiveLocalOriginFailures: 5
     tls:
       mode: ISTIO_MUTUAL
   subsets:
@@ -88,8 +134,26 @@ metadata:
 spec:
   host: db
   trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 50
+        connectTimeout: 10s
+        tcpKeepalive:
+          time: 3600s
+          interval: 75s
+          probes: 10
+    loadBalancer:
+      simple: ROUND_ROBIN
+    outlierDetection:
+      consecutiveErrors: 3
+      interval: 10s
+      baseEjectionTime: 60s
+      maxEjectionPercent: 100
     tls:
       mode: ISTIO_MUTUAL
+  subsets:
+  - name: v1
+    labels: { version: v1 }
 ---
 # 3. 라우팅 설정 (VirtualService - 외부 트래픽용)
 apiVersion: networking.istio.io/v1beta1
@@ -108,8 +172,21 @@ spec:
     route:
     - destination:
         host: web
+        subset: v1
         port:
           number: 80
+      weight: 50
+    - destination:
+        host: web
+        subset: v2
+        port:
+          number: 80
+      weight: 50
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+      retryOn: 5xx,reset,connect-failure
 ---
 # 4. 가상 서비스 (VirtualService - 내부 메시 트래픽용)
 apiVersion: networking.istio.io/v1beta1
@@ -156,6 +233,18 @@ spec:
         host: was
         subset: v4
       weight: 25
+    timeout: 60s
+    retries:
+      attempts: 3
+      perTryTimeout: 15s
+      retryOn: 5xx,reset,connect-failure,retriable-4xx
+    headers:
+      request:
+        add:
+          x-forwarded-by: "web-tier"
+      response:
+        add:
+          x-served-by: "was-tier"
 ---
 # DB 서버 TCP 라우팅
 apiVersion: networking.istio.io/v1beta1
@@ -171,5 +260,6 @@ spec:
     route:
     - destination:
         host: db
+        subset: v1
         port:
           number: 3306
