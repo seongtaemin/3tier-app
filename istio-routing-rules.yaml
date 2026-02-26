@@ -40,7 +40,7 @@ spec:
   rules:
   - from:
     - source:
-        principals: ["cluster.local/ns/3tier-app-31/sa/default"]
+        principals: ["cluster.local/ns/3tier-app-32/sa/default"]
 ---
 # WAS -> DB
 apiVersion: security.istio.io/v1beta1
@@ -56,7 +56,7 @@ spec:
   rules:
   - from:
     - source:
-        principals: ["cluster.local/ns/3tier-app-31/sa/default"]
+        principals: ["cluster.local/ns/3tier-app-32/sa/default"]
 ---
 # 3. ?�??규칙 (DestinationRule)
 apiVersion: networking.istio.io/v1beta1
