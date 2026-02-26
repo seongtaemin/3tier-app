@@ -1,5 +1,5 @@
 ---
-# 1. ?�증 �?보안 ?�정 (PeerAuthentication)
+# 1. ?�증 �?보안 ?�정 (PeerAuthentication)
 apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
@@ -9,8 +9,8 @@ spec:
   mtls:
     mode: STRICT
 ---
-# 2. ?��? ?�책 (AuthorizationPolicy)
-# Gateway -> Web (?�당 ?�임?�페?�스 ?�의 게이?�웨???�드?�서 ?�는 ?�래???�용)
+# 2. ?��? ?�책 (AuthorizationPolicy)
+# Gateway -> Web (?�당 ?�임?�페?�스 ?�의 게이?�웨???�드?�서 ?�는 ?�래???�용)
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
@@ -24,7 +24,7 @@ spec:
   rules:
   - from:
     - source:
-        namespaces: ["3tier-app-31", "istio-system"]
+        namespaces: ["${NAMESPACE}", "istio-system"]
 ---
 # Web -> WAS
 apiVersion: security.istio.io/v1beta1
@@ -40,7 +40,7 @@ spec:
   rules:
   - from:
     - source:
-        principals: ["cluster.local/ns/3tier-app-32/sa/default"]
+        principals: ["cluster.local/ns/${NAMESPACE}/sa/default"]
 ---
 # WAS -> DB
 apiVersion: security.istio.io/v1beta1
@@ -56,9 +56,9 @@ spec:
   rules:
   - from:
     - source:
-        principals: ["cluster.local/ns/3tier-app-32/sa/default"]
+        principals: ["cluster.local/ns/${NAMESPACE}/sa/default"]
 ---
-# 3. ?�??규칙 (DestinationRule)
+# 3. ?�??규칙 (DestinationRule)
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
@@ -106,8 +106,8 @@ spec:
     tls:
       mode: ISTIO_MUTUAL
 ---
-# 4. ?�우???�정 (VirtualService - ?��? ?�래?�용)
-# ?�용 Istio ?�동 ?�우??
+# 4. ?�우???�정 (VirtualService - ?��? ?�래?�용)
+# ?�용 Istio ?�동 ?�우??
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -128,8 +128,8 @@ spec:
         port:
           number: 80
 ---
-# 5. 가???�비??(VirtualService - ?��? 메시 ?�래?�용)
-# Web ?��???v1/v2 가중치 분산
+# 5. 가???�비??(VirtualService - ?��? 메시 ?�래?�용)
+# Web ?��???v1/v2 가중치 분산
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -149,7 +149,7 @@ spec:
         subset: v2
       weight: 50
 ---
-# WAS ?��? v1~v4 가중치 분산
+# WAS ?��? v1~v4 가중치 분산
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -177,7 +177,7 @@ spec:
         subset: v4
       weight: 25
 ---
-# DB ?��? TCP ?�우??
+# DB ?��? TCP ?�우??
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:

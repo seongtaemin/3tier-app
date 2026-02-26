@@ -1,5 +1,5 @@
 ---
-# ?¤ì„?¤í˜?´ìŠ¤ ê¸°ë³¸ mTLS ?¤ì • (STRICT)
+# ?ï¿½ì„?ï¿½í˜?ï¿½ìŠ¤ ê¸°ë³¸ mTLS ?ï¿½ì • (STRICT)
 apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
@@ -9,7 +9,7 @@ spec:
   mtls:
     mode: STRICT
 ---
-# Web ?°ì–´???¸ë? ?¸ë˜???¼ë°˜ HTTP)???˜ì‹ ?´ì•¼ ?˜ë?ë¡?PERMISSIVE
+# Web ?ï¿½ì–´???ï¿½ï¿½? ?ï¿½ë˜???ï¿½ë°˜ HTTP)???ï¿½ì‹ ?ï¿½ì•¼ ?ï¿½ï¿½?ï¿½?PERMISSIVE
 apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
@@ -22,7 +22,7 @@ spec:
   mtls:
     mode: PERMISSIVE
 ---
-# Web ?°ì–´ ?‘ê·¼ ?ˆìš© (Ingress Gateway ??Web)
+# Web ?ï¿½ì–´ ?ï¿½ê·¼ ?ï¿½ìš© (Ingress Gateway ??Web)
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
@@ -36,10 +36,10 @@ spec:
   rules:
   - from:
     - source:
-        # ?¸ê·¸?ˆìŠ¤ ê²Œì´?¸ì›¨?´ì˜ IDë¥??ˆìš© (?¼ë°˜?ìœ¼ë¡?istio-ingressgateway)
-        namespaces: ["istio-system"]
+        # ?ï¿½ê·¸?ï¿½ìŠ¤ ê²Œì´?ï¿½ì›¨?ï¿½ì˜ IDï¿½??ï¿½ìš© (?ï¿½ë°˜?ï¿½ìœ¼ï¿½?istio-ingressgateway)
+        namespaces: ["${NAMESPACE}", "istio-system"]
 ---
-# WAS ?°ì–´ ?‘ê·¼ ?ˆìš© (Web ??WAS)
+# WAS ?ï¿½ì–´ ?ï¿½ê·¼ ?ï¿½ìš© (Web ??WAS)
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
@@ -53,12 +53,12 @@ spec:
   rules:
   - from:
     - source:
-        principals: ["cluster.local/ns/3tier-app-32/sa/default"]
+        principals: ["cluster.local/ns/${NAMESPACE}/sa/default"]
     to:
     - operation:
         ports: ["8080"]
 ---
-# WAS ??DB ?‘ê·¼ë§??ˆìš©?˜ëŠ” AuthorizationPolicy
+# WAS ??DB ?ï¿½ê·¼ï¿½??ï¿½ìš©?ï¿½ëŠ” AuthorizationPolicy
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
@@ -72,7 +72,7 @@ spec:
   rules:
   - from:
     - source:
-        principals: ["cluster.local/ns/3tier-app-32/sa/default"]
+        principals: ["cluster.local/ns/${NAMESPACE}/sa/default"]
     to:
     - operation:
         ports: ["3306"]
