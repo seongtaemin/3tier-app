@@ -37,7 +37,7 @@ spec:
   rules:
   - from:
     - source:
-        principals: ["cluster.local/ns/\/sa/default"]
+        principals: ["cluster.local/ns/3tier-app-38/sa/default"]
 ---
 # WAS -> DB
 apiVersion: security.istio.io/v1beta1
@@ -52,7 +52,7 @@ spec:
   rules:
   - from:
     - source:
-        principals: ["cluster.local/ns/\/sa/default"]
+        principals: ["cluster.local/ns/3tier-app-38/sa/default"]
 ---
 # 3. 대상 규칙 (DestinationRule)
 apiVersion: networking.istio.io/v1beta1
