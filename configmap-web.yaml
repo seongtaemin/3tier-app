@@ -56,6 +56,11 @@ data:
                 proxy_set_header X-Real-IP $remote_addr;
                 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
                 proxy_set_header X-Forwarded-Proto $scheme;
+                
+                # Web Pod 정보를 전달하기 위한 헤더 추가
+                proxy_set_header X-Web-Pod-Name $hostname;
+                proxy_set_header X-Web-Pod-IP $server_addr;
+
                 proxy_connect_timeout 5s;
                 proxy_read_timeout 10s;
                 proxy_send_timeout 10s;
