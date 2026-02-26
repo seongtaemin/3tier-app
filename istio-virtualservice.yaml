@@ -1,4 +1,4 @@
-# 외부 트래픽을 위한 Web 라우팅 (Istio VirtualService + Gateway)
+﻿# ?몃? ?몃옒?쎌쓣 ?꾪븳 Web ?쇱슦??(Istio VirtualService + Gateway)
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -26,7 +26,7 @@ spec:
       perTryTimeout: 10s
       retryOn: 5xx,reset,connect-failure
 ---
-# Web에서 WAS 내부 라우팅 (서비스 메시 내부 트래픽 제어)
+# Web?먯꽌 WAS ?대? ?쇱슦??(?쒕퉬??硫붿떆 ?대? ?몃옒???쒖뼱)
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -56,7 +56,7 @@ spec:
         add:
           x-served-by: "was-tier"
 ---
-# WAS에서 DB 내부 라우팅 (TCP 트래픽 제어)
+# WAS?먯꽌 DB ?대? ?쇱슦??(TCP ?몃옒???쒖뼱)
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:

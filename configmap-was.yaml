@@ -1,4 +1,4 @@
-apiVersion: v1
+﻿apiVersion: v1
 kind: ConfigMap
 metadata:
   name: was-config
@@ -7,7 +7,7 @@ metadata:
     app: was
     tier: middleware
 data:
-  # 애플리케이션 설정
+  # ?좏뵆由ъ??댁뀡 ?ㅼ젙
   application.properties: |
     # Database Connection
     spring.datasource.url=jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul
@@ -15,23 +15,23 @@ data:
     spring.datasource.username=${DB_USER}
     spring.datasource.password=${DB_PASSWORD}
 
-    # JPA 설정
+    # JPA ?ㅼ젙
     spring.jpa.hibernate.ddl-auto=update
     spring.jpa.show-sql=false
     spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQL8Dialect
 
-    # 서버 설정
+    # ?쒕쾭 ?ㅼ젙
     server.port=8080
     server.servlet.context-path=/
 
-    # 로깅 설정
+    # 濡쒓퉭 ?ㅼ젙
     logging.level.root=INFO
     logging.level.org.springframework.web=INFO
 
-  # JVM 옵션
+  # JVM ?듭뀡
   JAVA_OPTS: "-Xms512m -Xmx1024m -XX:+UseG1GC -XX:MaxGCPauseMillis=200"
 
-  # Tomcat 설정
+  # Tomcat ?ㅼ젙
   CATALINA_OPTS: "-Dspring.profiles.active=production -Dspring.config.location=file:/opt/app/config/application.properties"
 
   index.jsp: |
