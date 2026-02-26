@@ -28,7 +28,7 @@ data:
         access_log  /var/log/nginx/access.log  main;
         sendfile        on;
         
-        # ?곌껐 怨좎갑??諛⑹??섍린 ?꾪빐 keepalive 鍮꾪솢?깊솕 諛???꾩븘???⑥텞
+        # 연결 고착을 방지하기 위해 keepalive 비활성화 및 타임아웃 단축
         keepalive_timeout  0; 
 
         upstream was_backend {
@@ -49,7 +49,7 @@ data:
                 proxy_pass http://was_backend;
                 proxy_http_version 1.1;
                 
-                # Connection??close濡??ㅼ젙?섏뿬 留??붿껌留덈떎 ?덈줈 濡쒕뱶諛몃윴???좊룄
+                # Connection을 close로 설정하여 매 요청마다 새로 로드밸런싱 유도
                 proxy_set_header Connection "close"; 
                 
                 proxy_set_header Host was;

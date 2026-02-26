@@ -1,5 +1,5 @@
-﻿# 1. 蹂댁븞 ?뺤콉 (AuthorizationPolicy)
-# Gateway -> Web (?뚯뒪?몃? ?꾪빐 紐⑤뱺 ?몃옒???덉슜)
+﻿# 1. 보안 정책 (AuthorizationPolicy)
+# Gateway -> Web (테스트를 위해 모든 트래픽 허용)
 apiVersion: security.istio.io/v1beta1
 kind: AuthorizationPolicy
 metadata:
@@ -46,7 +46,7 @@ spec:
     - source:
         principals: ["cluster.local/ns/3tier-app-39/sa/default"]
 ---
-# 2. ?곌껐 洹쒖튃 (DestinationRule)
+# 2. 연결 규칙 (DestinationRule)
 apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
@@ -91,7 +91,7 @@ spec:
     tls:
       mode: ISTIO_MUTUAL
 ---
-# 3. ?쇱슦???ㅼ젙 (VirtualService - ?몃? ?몃옒?쎌슜)
+# 3. 라우팅 설정 (VirtualService - 외부 트래픽용)
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -111,7 +111,7 @@ spec:
         port:
           number: 80
 ---
-# 4. 媛???쒕퉬??(VirtualService - ?대? 硫붿떆 ?몃옒?쎌슜)
+# 4. 가상 서비스 (VirtualService - 내부 메시 트래픽용)
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -130,7 +130,7 @@ spec:
         subset: v2
       weight: 50
 ---
-# WAS ?대? v1~v4 媛以묒튂 遺꾩궛
+# WAS 내부 v1~v4 가중치 분산
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -157,7 +157,7 @@ spec:
         subset: v4
       weight: 25
 ---
-# DB ?쒕쾭 TCP ?쇱슦??
+# DB 서버 TCP 라우팅
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:

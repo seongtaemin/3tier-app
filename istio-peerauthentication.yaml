@@ -1,4 +1,4 @@
-﻿# ?ㅼ엫?ㅽ럹?댁뒪 湲곕낯 mTLS ?ㅼ젙 (STRICT)
+﻿# 네임스페이스 기본 mTLS 설정 (STRICT)
 apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
@@ -7,7 +7,7 @@ spec:
   mtls:
     mode: STRICT
 ---
-# Web ?곗뼱?먮뒗 ?몃? ?묒냽???꾪빐 PERMISSIVE ?덉슜 (Gateway ?듭떊??
+# Web 티어에는 외부 접속을 위해 PERMISSIVE 허용 (Gateway 통신용)
 apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
