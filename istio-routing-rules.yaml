@@ -22,7 +22,7 @@ spec:
   rules:
   - from:
     - source:
-        namespaces: ["${NAMESPACE}", "istio-system"]
+        namespaces: ["\", "istio-system"]
 ---
 # Web -> WAS
 apiVersion: security.istio.io/v1beta1
@@ -37,7 +37,7 @@ spec:
   rules:
   - from:
     - source:
-        principals: ["cluster.local/ns/${NAMESPACE}/sa/default"]
+        principals: ["cluster.local/ns/\/sa/default"]
 ---
 # WAS -> DB
 apiVersion: security.istio.io/v1beta1
@@ -52,11 +52,7 @@ spec:
   rules:
   - from:
     - source:
-<<<<<<< HEAD
-        principals: ["cluster.local/ns/${NAMESPACE}/sa/default"]
-=======
-        principals: ["cluster.local/ns/3tier-app-38/sa/default"]
->>>>>>> c54d8acd2a29bfe64fa57e6fd6bf9b9c730ae459
+        principals: ["cluster.local/ns/\/sa/default"]
 ---
 # 3. 대상 규칙 (DestinationRule)
 apiVersion: networking.istio.io/v1beta1
