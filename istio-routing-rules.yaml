@@ -24,7 +24,7 @@ spec:
   rules:
   - from:
     - source:
-        namespaces: ["${NAMESPACE}", "istio-system"]
+        namespaces: ["3tier-app-31", "istio-system"]
 ---
 # Web -> WAS
 apiVersion: security.istio.io/v1beta1
