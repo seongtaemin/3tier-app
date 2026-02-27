@@ -66,26 +66,7 @@ data:
             InetAddress dbAddr = InetAddress.getByName(dbHost);
             dbIp = dbAddr.getHostAddress();
             
-            // 1. Try Reverse DNS to get Pod Name (works for StatefulSets)
-            try {
-                String canonical = dbAddr.getCanonicalHostName();
-                if (canonical != null && !canonical.equals(dbIp) && !canonical.equalsIgnoreCase("db")) {
-                    dbPodName = canonical.split("\\.")[0];
-                }
-            } catch (Exception e) {}
-
-            // 2. If it's still db or Unknown, try to see if it's db-0 (StatefulSet default)
-            if (dbPodName.equals("Unknown") || dbPodName.equalsIgnoreCase("db")) {
-                try {
-                    // Check if db-0 is resolvable in the local domain
-                    InetAddress.getByName("db-0.db");
-                    dbPodName = "db-0";
-                } catch (Exception e) {
-                    dbPodName = "db"; // Final fallback
-                }
-            }
-
-            // Connection Check
+            // Connection Check via Socket first
             Socket socket = new Socket();
             try {
                 socket.setSoTimeout(2000);
@@ -93,14 +74,41 @@ data:
                 if (socket.isConnected()) {
                     dbConnected = true;
                     dbStatus = "Connected to DB at " + dbIp + ":" + dbPort;
+                    
+                    // Now try to get the real Pod Name via JDBC
+                    Connection conn = null;
+                    try {
+                        String jdbcUrl = "jdbc:mysql://" + dbIp + ":" + dbPort + "/" + dbName + "?useSSL=false&allowPublicKeyRetrieval=true&connectTimeout=2000";
+                        
+                        // Try loading the driver
+                        try {
+                            Class.forName("com.mysql.cj.jdbc.Driver");
+                        } catch (ClassNotFoundException e) {
+                            Class.forName("com.mysql.jdbc.Driver");
+                        }
+                        
+                        conn = DriverManager.getConnection(jdbcUrl, dbUser, dbPassword);
+                        Statement stmt = conn.createStatement();
+                        ResultSet rs = stmt.executeQuery("SELECT @@hostname");
+                        if (rs.next()) {
+                            dbPodName = rs.getString(1);
+                        }
+                    } catch (Exception e) {
+                        dbPodName = "Error: " + e.getMessage();
+                        // If it's a driver issue, it will be reflected here
+                    } finally {
+                        if (conn != null) try { conn.close(); } catch(Exception e) {}
+                    }
                 }
             } catch (Exception e) {
-                dbStatus = "Error: " + e.getMessage();
+                dbStatus = "Socket Error: " + e.getMessage();
+                dbPodName = "Connection Failed";
             } finally {
                 try { socket.close(); } catch(Exception e) {}
             }
         } catch (Exception e) {
             dbStatus = "DNS Error: " + e.getMessage();
+            dbPodName = "Resolution Failed";
         }
 
         String currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
