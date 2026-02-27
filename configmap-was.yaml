@@ -102,7 +102,7 @@ data:
             </div>
 
             <div class="info-box" style="border-left-color: #27ae60;">
-                <span class="tier-label">DB Tier (Database)</span>
+                <span class="tier-label">DB Tier (Backend)</span>
                 <p><strong>Host/Service:</strong> <span class="highlight"><%= dbHost %></span></p>
                 <p><strong>Host IP:</strong> <span class="highlight"><%= dbIp %></span></p>
                 <p><strong>Status:</strong> <span class="<%= dbStatus.startsWith("Connected") ? "success" : "highlight" %>"><%= dbStatus %></span></p>
