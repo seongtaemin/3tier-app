@@ -62,21 +62,27 @@ data:
         boolean dbConnected = false;
         
         try {
-            // Since the service is now headless (clusterIP: None), 
-            // dbHost resolves directly to the Pod IP(s).
+            // Resolve DB Host (should be the Pod IP due to headless service)
             InetAddress dbAddr = InetAddress.getByName(dbHost);
             dbIp = dbAddr.getHostAddress();
             
-            // Reverse DNS lookup to get the actual Pod Name
-            String canonical = dbAddr.getCanonicalHostName();
-            if (canonical != null && !canonical.equals(dbIp)) {
-                if (canonical.contains(".")) {
+            // 1. Try Reverse DNS to get Pod Name (works for StatefulSets)
+            try {
+                String canonical = dbAddr.getCanonicalHostName();
+                if (canonical != null && !canonical.equals(dbIp) && !canonical.equalsIgnoreCase("db")) {
                     dbPodName = canonical.split("\\.")[0];
-                } else {
-                    dbPodName = canonical;
                 }
-            } else {
-                dbPodName = dbHost; // Fallback to 'db'
+            } catch (Exception e) {}
+
+            // 2. If it's still db or Unknown, try to see if it's db-0 (StatefulSet default)
+            if (dbPodName.equals("Unknown") || dbPodName.equalsIgnoreCase("db")) {
+                try {
+                    // Check if db-0 is resolvable in the local domain
+                    InetAddress.getByName("db-0.db");
+                    dbPodName = "db-0";
+                } catch (Exception e) {
+                    dbPodName = "db"; // Final fallback
+                }
             }
 
             // Connection Check
