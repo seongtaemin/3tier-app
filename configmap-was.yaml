@@ -36,75 +36,71 @@ data:
 
   index.jsp: |
     <%@ page contentType="text/html; charset=UTF-8" %>
-    <%@ page import="java.net.Socket" %>
-    <%@ page import="java.net.InetSocketAddress" %>
-    <%@ page import="java.net.InetAddress" %>
-    <%@ page import="java.net.URL" %>
-    <%@ page import="java.io.BufferedReader" %>
-    <%@ page import="java.io.InputStreamReader" %>
-    <%@ page import="java.text.SimpleDateFormat" %>
-    <%@ page import="java.util.Date" %>
+    <%@ page import="java.net.*" %>
+    <%@ page import="java.net.http.*" %>
+    <%@ page import="java.io.*" %>
+    <%@ page import="java.time.*" %>
+    <%@ page import="java.util.*" %>
+    <%@ page import="java.text.*" %>
     <%
-        // Get Web Pod info from headers set by Nginx
+        // 1. Get Web Tier Info
         String webPodName = request.getHeader("X-Web-Pod-Name");
         String webPodIp = request.getHeader("X-Web-Pod-IP");
         if (webPodName == null) webPodName = "Unknown (Direct)";
         if (webPodIp == null) webPodIp = request.getRemoteAddr();
 
+        // 2. Prepare DB Tier Info
         String dbHost = System.getenv("DB_HOST");
         String dbPortStr = System.getenv("DB_PORT");
         int dbPort = (dbPortStr != null && !dbPortStr.isEmpty()) ? Integer.parseInt(dbPortStr) : 3306;
         
         String dbStatus = "Disconnected";
         String dbIp = "Unknown";
-        String dbPodName = "Unknown";
+        String dbPodName = "db";
         boolean dbConnected = false;
         
         try {
-            // 1. Resolve DB Host (should be the Pod IP due to headless service)
+            // A. Resolve DB Host IP
             InetAddress dbAddr = InetAddress.getByName(dbHost);
             dbIp = dbAddr.getHostAddress();
             
-            // 2. Try to get Pod Name from the metadata-sidecar (port 8081)
+            // B. Try to fetch real Pod Name from metadata-sidecar
             try {
-                URL url = new URL("http://" + dbIp + ":8081/");
-                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
-                conn.setConnectTimeout(1000);
-                conn.setReadTimeout(1000);
-                BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
+                HttpClient client = HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofMillis(800))
+                    .build();
+                HttpRequest req = HttpRequest.newBuilder()
+                    .uri(URI.create("http://" + dbIp + ":8081/"))
+                    .timeout(Duration.ofMillis(800))
+                    .build();
+                HttpResponse<String> resp = client.send(req, HttpResponse.BodyHandlers.ofString());
+                if (resp.statusCode() == 200) {
+                    dbPodName = resp.body().trim();
                 }
-                in.close();
-                dbPodName = response.toString().trim();
             } catch (Exception e) {
-                // Fallback: If sidecar fails, maybe try DNS canonical name?
+                // Fallback to DNS canonical name if sidecar fails
                 String canonical = dbAddr.getCanonicalHostName();
                 if (canonical != null && !canonical.equals(dbIp) && !canonical.equalsIgnoreCase("db")) {
                     dbPodName = canonical.split("\\.")[0];
-                } else {
-                    dbPodName = "db (resolving...)";
                 }
             }
 
-            // 3. Socket Connection Check for MySQL status
+            // C. Connection Check
             Socket socket = new Socket();
             try {
-                socket.setSoTimeout(2000);
-                socket.connect(new InetSocketAddress(dbIp, dbPort), 2000);
+                socket.setSoTimeout(1500);
+                socket.connect(new InetSocketAddress(dbIp, dbPort), 1500);
                 if (socket.isConnected()) {
                     dbConnected = true;
                     dbStatus = "Connected to DB at " + dbIp + ":" + dbPort;
                 }
             } catch (Exception e) {
-                dbStatus = "Error: " + e.getMessage();
+                dbStatus = "Connection Error: " + e.getMessage();
             } finally {
                 try { socket.close(); } catch(Exception e) {}
             }
         } catch (Exception e) {
-            dbStatus = "DNS Error: " + e.getMessage();
+            dbStatus = "Status: " + e.getMessage();
         }
 
         String currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
