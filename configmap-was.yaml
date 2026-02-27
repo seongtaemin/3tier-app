@@ -58,53 +58,43 @@ data:
         
         String dbStatus = "Disconnected";
         String dbIp = "Unknown";
-        String dbPodName = dbHost; // Default to service name
+        String dbPodName = "Unknown";
         boolean dbConnected = false;
         
-        Socket socket = new Socket();
         try {
-            socket.setSoTimeout(2000);
-            socket.connect(new InetSocketAddress(dbHost, dbPort), 2000);
-            if (socket.isConnected()) {
-                dbConnected = true;
-                dbStatus = "Connected to DB at " + dbHost + ":" + dbPort;
-                try {
-                    dbIp = InetAddress.getByName(dbHost).getHostAddress();
-                } catch (Exception e) {}
-                
-                // Try to get real Pod Name via JDBC
-                Connection conn = null;
-                try {
-                    String jdbcUrl = "jdbc:mysql://" + dbHost + ":" + dbPort + "/" + dbName + "?useSSL=false&allowPublicKeyRetrieval=true";
-                    Class.forName("com.mysql.cj.jdbc.Driver");
-                    conn = DriverManager.getConnection(jdbcUrl, dbUser, dbPassword);
-                    Statement stmt = conn.createStatement();
-                    ResultSet rs = stmt.executeQuery("SELECT @@hostname");
-                    if (rs.next()) {
-                        dbPodName = rs.getString(1);
-                    }
-                } catch (Exception e) {
-                    // Fallback 1: Try reverse DNS lookup on the IP
-                    try {
-                        InetAddress dbAddr = InetAddress.getByName(dbIp);
-                        String canonical = dbAddr.getCanonicalHostName();
-                        if (canonical != null && !canonical.equals(dbIp) && !canonical.equals(dbHost)) {
-                            // In K8s, FQDN is often pod-name.service-name.namespace.svc.cluster.local
-                            if (canonical.contains(".")) {
-                                dbPodName = canonical.split("\\.")[0];
-                            } else {
-                                dbPodName = canonical;
-                            }
-                        }
-                    } catch (Exception e2) {}
-                } finally {
-                    if (conn != null) try { conn.close(); } catch(Exception e) {}
+            // Since the service is now headless (clusterIP: None), 
+            // dbHost resolves directly to the Pod IP(s).
+            InetAddress dbAddr = InetAddress.getByName(dbHost);
+            dbIp = dbAddr.getHostAddress();
+            
+            // Reverse DNS lookup to get the actual Pod Name
+            String canonical = dbAddr.getCanonicalHostName();
+            if (canonical != null && !canonical.equals(dbIp)) {
+                if (canonical.contains(".")) {
+                    dbPodName = canonical.split("\\.")[0];
+                } else {
+                    dbPodName = canonical;
                 }
+            } else {
+                dbPodName = dbHost; // Fallback to 'db'
+            }
+
+            // Connection Check
+            Socket socket = new Socket();
+            try {
+                socket.setSoTimeout(2000);
+                socket.connect(new InetSocketAddress(dbIp, dbPort), 2000);
+                if (socket.isConnected()) {
+                    dbConnected = true;
+                    dbStatus = "Connected to DB at " + dbIp + ":" + dbPort;
+                }
+            } catch (Exception e) {
+                dbStatus = "Error: " + e.getMessage();
+            } finally {
+                try { socket.close(); } catch(Exception e) {}
             }
         } catch (Exception e) {
-            dbStatus = "Error: " + e.getMessage();
-        } finally {
-            try { socket.close(); } catch(Exception e) {}
+            dbStatus = "DNS Error: " + e.getMessage();
         }
 
         String currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());

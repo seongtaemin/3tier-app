@@ -1,4 +1,4 @@
-﻿---
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -100,6 +100,7 @@ spec:
   selector:
     app: db
     tier: backend
+  clusterIP: None
   ports:
   - port: 3306
     targetPort: 3306
