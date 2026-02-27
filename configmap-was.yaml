@@ -41,6 +41,7 @@ data:
     <%@ page import="java.net.InetAddress" %>
     <%@ page import="java.text.SimpleDateFormat" %>
     <%@ page import="java.util.Date" %>
+    <%@ page import="java.sql.*" %>
     <%
         // Get Web Pod info from headers set by Nginx
         String webPodName = request.getHeader("X-Web-Pod-Name");
@@ -51,10 +52,15 @@ data:
         String dbHost = System.getenv("DB_HOST");
         String dbPortStr = System.getenv("DB_PORT");
         int dbPort = (dbPortStr != null && !dbPortStr.isEmpty()) ? Integer.parseInt(dbPortStr) : 3306;
+        String dbUser = System.getenv("DB_USER");
+        String dbPassword = System.getenv("DB_PASSWORD");
+        String dbName = System.getenv("DB_NAME");
         
         String dbStatus = "Disconnected";
         String dbIp = "Unknown";
+        String dbPodName = dbHost; // Default to service name
         boolean dbConnected = false;
+        
         Socket socket = new Socket();
         try {
             socket.setSoTimeout(2000);
@@ -65,6 +71,23 @@ data:
                 try {
                     dbIp = InetAddress.getByName(dbHost).getHostAddress();
                 } catch (Exception e) {}
+                
+                // Try to get real Pod Name via JDBC
+                Connection conn = null;
+                try {
+                    String jdbcUrl = "jdbc:mysql://" + dbHost + ":" + dbPort + "/" + dbName + "?useSSL=false&allowPublicKeyRetrieval=true";
+                    Class.forName("com.mysql.cj.jdbc.Driver");
+                    conn = DriverManager.getConnection(jdbcUrl, dbUser, dbPassword);
+                    Statement stmt = conn.createStatement();
+                    ResultSet rs = stmt.executeQuery("SELECT @@hostname");
+                    if (rs.next()) {
+                        dbPodName = rs.getString(1);
+                    }
+                } catch (Exception e) {
+                    // Fallback to service name if JDBC fails
+                } finally {
+                    if (conn != null) try { conn.close(); } catch(Exception e) {}
+                }
             }
         } catch (Exception e) {
             dbStatus = "Error: " + e.getMessage();
@@ -448,7 +471,7 @@ data:
                         <svg class="icon-svg" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125"/></svg>
                     </div>
                     <div class="tier-title-group">
-                        <div class="tier-title">DB Tier (Backend)</div>
+                        <div class="tier-title">DB Tier</div>
                         <div class="tier-subtitle">MySQL Backend Database</div>
                     </div>
                     <span class="status-badge <%= dbConnected ? "connected" : "error" %>">
@@ -458,11 +481,11 @@ data:
                 </div>
                 <div class="tier-body">
                     <div class="info-row">
-                        <span class="info-label">Host / Service</span>
-                        <span class="info-value"><%= dbHost %></span>
+                        <span class="info-label">Pod Name</span>
+                        <span class="info-value"><%= dbPodName %></span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">Host IP</span>
+                        <span class="info-label">Pod IP</span>
                         <span class="info-value"><%= dbIp %></span>
                     </div>
                     <div class="info-row">
