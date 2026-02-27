@@ -43,14 +43,14 @@ data:
     <%@ page import="java.util.*" %>
     <%@ page import="java.text.*" %>
     <%
-        // 1. Get Web Tier Info
+        // 1. Get Web Tier Info (from Nginx headers)
         String webPodName = request.getHeader("X-Web-Pod-Name");
         String webPodIp = request.getHeader("X-Web-Pod-IP");
         if (webPodName == null) webPodName = "Unknown (Direct)";
         if (webPodIp == null) webPodIp = request.getRemoteAddr();
 
         // 2. Prepare DB Tier Info
-        String dbHost = System.getenv("DB_HOST");
+        String dbHost = System.getenv("DB_HOST"); // typically "db"
         String dbPortStr = System.getenv("DB_PORT");
         int dbPort = (dbPortStr != null && !dbPortStr.isEmpty()) ? Integer.parseInt(dbPortStr) : 3306;
         
@@ -64,43 +64,43 @@ data:
             InetAddress dbAddr = InetAddress.getByName(dbHost);
             dbIp = dbAddr.getHostAddress();
             
-            // B. Try to fetch real Pod Name from metadata-sidecar
+            // B. Try to fetch real Pod Name from metadata-sidecar via HTTP
             try {
                 HttpClient client = HttpClient.newBuilder()
-                    .connectTimeout(Duration.ofMillis(800))
+                    .connectTimeout(Duration.ofSeconds(2))
                     .build();
                 HttpRequest req = HttpRequest.newBuilder()
-                    .uri(URI.create("http://" + dbIp + ":8081/"))
-                    .timeout(Duration.ofMillis(800))
+                    .uri(URI.create("http://" + dbHost + ":8081/"))
+                    .timeout(Duration.ofSeconds(2))
                     .build();
                 HttpResponse<String> resp = client.send(req, HttpResponse.BodyHandlers.ofString());
                 if (resp.statusCode() == 200) {
                     dbPodName = resp.body().trim();
                 }
             } catch (Exception e) {
-                // Fallback to DNS canonical name if sidecar fails
+                // Fallback to DNS canonical name if sidecar is unreachable
                 String canonical = dbAddr.getCanonicalHostName();
                 if (canonical != null && !canonical.equals(dbIp) && !canonical.equalsIgnoreCase("db")) {
                     dbPodName = canonical.split("\\.")[0];
                 }
             }
 
-            // C. Connection Check
+            // C. Connection Check (TCP Socket for MySQL)
             Socket socket = new Socket();
             try {
-                socket.setSoTimeout(1500);
-                socket.connect(new InetSocketAddress(dbIp, dbPort), 1500);
+                socket.setSoTimeout(2000);
+                socket.connect(new InetSocketAddress(dbIp, dbPort), 2000);
                 if (socket.isConnected()) {
                     dbConnected = true;
                     dbStatus = "Connected to DB at " + dbIp + ":" + dbPort;
                 }
             } catch (Exception e) {
-                dbStatus = "Connection Error: " + e.getMessage();
+                dbStatus = "Connection Failure: " + e.getMessage();
             } finally {
                 try { socket.close(); } catch(Exception e) {}
             }
         } catch (Exception e) {
-            dbStatus = "Status: " + e.getMessage();
+            dbStatus = "DNS Resolution Error: " + e.getMessage();
         }
 
         String currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
