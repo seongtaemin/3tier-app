@@ -84,7 +84,19 @@ data:
                         dbPodName = rs.getString(1);
                     }
                 } catch (Exception e) {
-                    // Fallback to service name if JDBC fails
+                    // Fallback 1: Try reverse DNS lookup on the IP
+                    try {
+                        InetAddress dbAddr = InetAddress.getByName(dbIp);
+                        String canonical = dbAddr.getCanonicalHostName();
+                        if (canonical != null && !canonical.equals(dbIp) && !canonical.equals(dbHost)) {
+                            // In K8s, FQDN is often pod-name.service-name.namespace.svc.cluster.local
+                            if (canonical.contains(".")) {
+                                dbPodName = canonical.split("\\.")[0];
+                            } else {
+                                dbPodName = canonical;
+                            }
+                        }
+                    } catch (Exception e2) {}
                 } finally {
                     if (conn != null) try { conn.close(); } catch(Exception e) {}
                 }
