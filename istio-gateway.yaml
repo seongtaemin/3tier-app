@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: istio-proxy
-        image: auto
+        image: docker.io/istio/proxyv2:1.23.6
 ---
 # 2. LoadBalancer Service
 apiVersion: v1
