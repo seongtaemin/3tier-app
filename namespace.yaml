@@ -2,7 +2,7 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: 3tier-app
+  name: kolon-3tier-app
   annotations:
     argocd.argoproj.io/sync-wave: "-1"
   labels:
